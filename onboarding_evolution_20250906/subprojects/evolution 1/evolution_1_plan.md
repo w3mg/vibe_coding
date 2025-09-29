@@ -32,15 +32,31 @@ This evolution plan references the following context documents in the root direc
 
 We will define where different cases end up using a URL and query string
 
+### Design Implementation
+**Concept 2 (card-based layout) is the base design for both CEO/Visionary and COO/Integrator vanilla cases.**
+
+The design shows a 5-step onboarding flow:
+1. Confirm and lock in your vision
+2. Confirm/create decision guardrails for your people and AI (Core Values)
+3. Confirm your customer to cash map
+4. Confirm your scorecard measureables  
+5. Confirm your targets for the year
+
 ### Vanilla cases
-  - Vanilla + CEO/Visionary + EOS 
-        - detected by [how we'll figureit out]
+  - **Vanilla + CEO/Visionary + EOS**
+        - Uses Concept 2 design (card-based layout)
+        - Same base flow as COO/Integrator
+        - Will include button to add Integrator role (design pending)
         - end URL → "/today/dashboard[querystring TBD]"
-  - Vanilla + Integrator + EOS 
-        - detected by [how we'll figureit out]
+        
+  - **Vanilla + COO/Integrator + EOS**
+        - Uses Concept 2 design (card-based layout)
+        - Same base flow as CEO/Visionary
+        - Will include button to add CEO/Visionary role (design pending)
         - end URL→ "/today/dashboard[querystring TBD]"
+        
   - Vanilla + Coach + EOS 
-        - detected by [how we'll figureit out]
+        - detected by [how we'll figure it out]
         - end URL→ "/today/dashboard[querystring TBD]"
 
   ### Vision Builder
@@ -50,3 +66,16 @@ We will define where different cases end up using a URL and query string
         - TBD - doesn't currently gather framework first (or does it?)
         - detected by [to be documented]
         - end URL→ "[URL][querystring TBD]"
+
+## Execution/Architecture Ideas to Evaluate
+
+### 1. Standalone Element/Modal Approach
+- Shows up by default when user lands on dashboard
+- Only appears until all steps have been completed
+- Can be closed/dismissed by user
+- Can be relaunched via a Quick Wins tile if closed before completion
+
+### 2. Embedded Partial Approach
+- Simply embed a partial directly in the page
+- Stays visible until all steps completed
+- Or user indicates "don't show me this again"
