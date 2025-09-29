@@ -66,8 +66,8 @@ The active partial is now `app/views/today/_onboard_account_owners.html.erb` (fo
 - ✅ Controller wiring (`today#dashboard`)
   - Functional coverage now lives in `test/functional/user_onboarding_today_controller_test.rb` and asserts the helper is called, onboarding flags are assigned, and step completion variables drive the view.
   - Follow-ups:
-    1. Audit the early render path to ensure downstream dashboard data isn’t required elsewhere (add regression coverage if needed).
-    2. Replace the `'#'` placeholder URLs in `_onboard_account_owners.html.erb` once the step flows are ready (track in the UI workstream).
+    - ✅ Early-render audit complete: onboarding short-circuit now sets all variables consumed by `_onboard_account_owners.html.erb`, and functional coverage already exercises the render-before-return path.
+    - 🚧 Replace the `'#'` placeholder URLs in `_onboard_account_owners.html.erb` once the step flows are ready (track in the UI workstream).
 - TODO Phase 2 Enhancements:
   1. Extend `Group#configurable_by?` to honour config-user delegates (ObjectMeta storage TBD).
   2. Implement invited-helper flag in onboarding meta and update visibility logic/tests accordingly.
