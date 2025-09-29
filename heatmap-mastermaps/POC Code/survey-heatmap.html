@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Heat Map</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        
+        .heatmap-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .heatmap-grid {
+            display: table;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 3px;
+        }
+        
+        .category-row {
+            display: table-row;
+        }
+        
+        .category-label {
+            display: table-cell;
+            padding: 15px;
+            background: #2c3e50;
+            color: white;
+            font-weight: bold;
+            vertical-align: middle;
+            white-space: nowrap;
+            min-width: 180px;
+            font-size: 14px;
+        }
+        
+        .question-cell {
+            display: table-cell;
+            padding: 15px;
+            text-align: center;
+            vertical-align: middle;
+            width: 300px;
+            min-width: 300px;
+            height: 80px;
+            font-size: 13px;
+            line-height: 1.4;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .question-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        .empty-cell {
+            display: table-cell;
+            background: #f0f0f0;
+            width: 300px;
+            min-width: 300px;
+        }
+        
+        .score-number {
+            display: block;
+            margin-top: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: rgba(0,0,0,0.3);
+        }
+        
+        /* Score-based colors */
+        .score-1 { background: rgb(255, 0, 0); color: white; }
+        .score-2 { background: rgb(255, 128, 0); color: white; }
+        .score-3 { background: rgb(255, 255, 0); color: #333; }
+        .score-4 { background: rgb(128, 255, 0); color: #333; }
+        .score-5 { background: rgb(0, 180, 0); color: white; }
+    </style>
+</head>
+<body>
+    <div class="heatmap-container">
+        <h1>Business Assessment Heat Map</h1>
+        
+        <div class="heatmap-grid">
+            <!-- Brand/Market Position -->
+            <div class="category-row">
+                <div class="category-label">Brand/Market Position</div>
+                <div class="question-cell score-4">
+                    What is the strength of your brand/market visibility?
+                    <span class="score-number">4</span>
+                </div>
+                <div class="question-cell score-5">
+                    What is your brand position against your competitors?
+                    <span class="score-number">5</span>
+                </div>
+                <div class="question-cell score-4">
+                    How modern and relevant is your current company and brand image?
+                    <span class="score-number">4</span>
+                </div>
+            </div>
+            
+            <!-- Lead Generation/Market Expansion -->
+            <div class="category-row">
+                <div class="category-label">Lead Gen/Market Expansion</div>
+                <div class="question-cell score-3">
+                    How effective are your current lead generation efforts?
+                    <span class="score-number">3</span>
+                </div>
+                <div class="question-cell score-3">
+                    How confident are you that you are talking to the best, right-fit prospects?
+                    <span class="score-number">3</span>
+                </div>
+                <div class="question-cell score-3">
+                    How successful have you been in expanding into new markets in the last 12-18 months?
+                    <span class="score-number">3</span>
+                </div>
+            </div>
+            
+            <!-- Sales Performance -->
+            <div class="category-row">
+                <div class="category-label">Sales Performance</div>
+                <div class="question-cell score-3">
+                    Rank your team's ability to hit your sales goals each month
+                    <span class="score-number">3</span>
+                </div>
+                <div class="question-cell score-3">
+                    Rank your team's ability to meet your closed sales/deals target
+                    <span class="score-number">3</span>
+                </div>
+                <div class="question-cell score-4">
+                    Rank your ability to charge a premium price over your competitors
+                    <span class="score-number">4</span>
+                </div>
+            </div>
+            
+            <!-- Marketing/Messaging -->
+            <div class="category-row">
+                <div class="category-label">Marketing/Messaging</div>
+                <div class="question-cell score-4">
+                    How effective are you in getting your message out to your top prospects and target markets?
+                    <span class="score-number">4</span>
+                </div>
+                <div class="empty-cell"></div>
+                <div class="empty-cell"></div>
+            </div>
+            
+            <!-- Strategy/Financial Performance -->
+            <div class="category-row">
+                <div class="category-label">Strategy/Financial</div>
+                <div class="question-cell score-4">
+                    How effective is your growth strategy/plan in meeting revenue and profit goals?
+                    <span class="score-number">4</span>
+                </div>
+                <div class="question-cell score-5">
+                    How well are you meeting your gross margin and net profitability goals?
+                    <span class="score-number">5</span>
+                </div>
+                <div class="question-cell score-5">
+                    Rank the effectiveness of the ROI of your marketing spend
+                    <span class="score-number">5</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

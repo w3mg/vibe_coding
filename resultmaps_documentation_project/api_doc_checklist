@@ -1,0 +1,26 @@
+***INSTRUCTIONS:  USE FOR DILIGENCE ON EACH DOCUMENT BUT DO NOT EDIT THIS DOCUMENT***
+
+[ ] Definition of done: Readability 10/10
+[ ] Definition of done: Accuracy 10/10
+[ ] Definition of done: Completeness 10/10
+[ ] Overview (purpose, when to use)
+[ ] Base URL(s) and versioning notes
+[ ] Authentication and authorization (roles/permissions)
+[ ] Required headers (Content-Type, Accept, auth)
+[ ] Endpoint summary table (method, path, brief)
+[ ] For each endpoint: method and path
+[ ] Path parameters table (name, type, required, description)
+[ ] Query parameters table (name, type, defaults, validation)
+[ ] Request body schema (fields, types, constraints, example)
+[ ] Response schema (fields, types, example payload)
+[ ] Status codes with concrete error cases/messages
+[ ] Curl examples for common flows (copy-pasteable)
+[ ] Pagination, filtering, sorting (limits, defaults)
+[ ] Idempotency and retry behavior
+[ ] Rate limits and throttling notes
+[ ] Side effects and async/background behavior
+[ ] Security notes (CSRF, scopes, tokens)
+[ ] Deprecations and recommended alternatives
+[ ] Cross-links to related endpoints and UI flows
+[ ] Change log/date for the document
+[ ] Glossary of key terms and enums

@@ -41,11 +41,26 @@ The active partial is now `app/views/today/_onboard_account_owners.html.erb` (fo
    - Tests cover persona-specific configs, default fallbacks, and dependency structures.
 
 ### Visibility Helpers
-- TODO `should_show_account_onboarding?` (name TBD):
-  - Returns true when onboarding meta shows `account_id`/`group_id` for the current context, the user is that account’s creator, and `should_show_onboarding` is true.
-  - Leverage `User.has_team_config_rights(group)` so Phase 2 can extend access to configuration delegates without rewriting callers (initial implementation can default that hook to creator-only logic).
-  - Future extension: allow non-creators when an invitation flag (to be defined) is present.
-- Document and test the invited-helper path once the data model is finalized.
+- ✅ `should_show_account_onboarding?` lives in `User::OnboardingMeta` and now checks:
+  - Gating column `users.should_show_onboarding` (raw column value must be true).
+  - Context IDs persisted in onboarding meta (`account_id` and `group_id`).
+  - Rights via `Group#configurable_by?(user)` (Phase 1: group creator or account owner).
+- ✅ `Group#configurable_by?(user)` exists with unit coverage in `test/unit/group_test.rb`.
+- TODO Step Trigger Hooks (`app/models/user/onboarding_meta.rb`):
+  1. Implement `vision_step_complete_from_data?`
+  2. Implement `core_values_step_complete_from_data?`
+  3. Implement `customer_flow_step_complete_from_data?`
+  4. Implement `scorecard_step_complete_from_data?`
+  5. Implement `yearly_targets_step_complete_from_data?`
+  6. Extend `onboarding_step_complete_from_data?` to return true when any helper above matches.
+  7. Add unit specs proving each trigger works (Vision/Core Values/Customer Flow/Scorecard/Yearly Targets).
+- TODO Controller Wiring (`today#dashboard`):
+  1. Add failing functional test asserting the controller calls `should_show_account_onboarding?` and sets onboarding view state only when it returns true.
+  2. Implement the controller change and update the view partial wiring.
+  3. Rerun functional + onboarding unit tests to confirm.
+- TODO Phase 2 Enhancements:
+  1. Extend `Group#configurable_by?` to honour config-user delegates (ObjectMeta storage TBD).
+  2. Implement invited-helper flag in onboarding meta and update visibility logic/tests accordingly.
 
 ### Current Focus
 - ✅ Onboarding concern now owns all helpers (tests enforce `User::OnboardingMeta` as the single surface).

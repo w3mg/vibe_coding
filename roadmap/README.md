@@ -9,4 +9,5 @@ Conventions
 
 Index
 - User‑Facing Documentation Initiative → `docs-project.md`
-
+- Legacy User Model Test Failures → `bugs/2025-09-28-legacy_user_tests.md`
+- Legacy Group Model Test Failures → `bugs/2025-09-28-legacy_group_tests.md`

@@ -1,0 +1,75 @@
+[x] API - Items.md
+[x] Final Signoff API - Items.md
+[x] API - Items v3.md
+[x] Final Signoff API - Items v3.md
+[x] API - Goals.md
+[x] Final Signoff API - Goals.md
+[x] API - Groups.md
+[x] Final Signoff API - Groups.md
+[x] API - Users.md
+[x] Final Signoff API - Users.md
+[x] API - Assignments.md
+[x] Final Signoff API - Assignments.md
+[x] API - Measures.md
+[x] Final Signoff API - Measures.md
+[x] API - Day Plan Actions.md
+[x] Final Signoff API - Day Plan Actions.md
+[x] API - Communication.md
+[x] Final Signoff API - Communication.md
+[x] API - Seats & Snapshots.md
+[x] Final Signoff API - Seats & Snapshots.md
+[x] API - Sessions & Auth.md
+[x] Final Signoff API - Sessions & Auth.md
+[x] API - Integrations - Nango.md
+[x] Final Signoff API - Integrations - Nango.md
+[x] API - Integrations - Slack.md
+[x] Final Signoff API - Integrations - Slack.md
+[x] API - Integrations - Hooks & Webhooks.md
+[x] Final Signoff API - Integrations - Hooks & Webhooks.md
+[x] API - Labels.md
+[x] Final Signoff API - Labels.md
+[x] API - Linked URLs.md
+[x] Final Signoff API - Linked URLs.md
+[x] API - Object Metas.md
+[x] Final Signoff API - Object Metas.md
+[x] API - Preferences.md
+[x] Final Signoff API - Preferences.md
+[x] API - Scorecard Grids.md
+[x] Final Signoff API - Scorecard Grids.md
+[x] API - Weekly Materials.md
+[x] Final Signoff API - Weekly Materials.md
+[x] API - Material Categories.md
+[x] Final Signoff API - Material Categories.md
+[x] API - Custom Contents.md
+[x] Final Signoff API - Custom Contents.md
+[x] API - Custom Reports.md
+[x] Final Signoff API - Custom Reports.md
+[x] API - Day Plan Columns.md
+[x] Final Signoff API - Day Plan Columns.md
+[x] API - Result Areas.md
+[x] Final Signoff API - Result Areas.md
+[x] API - Templates.md
+[x] Final Signoff API - Templates.md
+[x] API - Big Picture.md
+[x] Final Signoff API - Big Picture.md
+[x] API - Todo List.md
+[x] Final Signoff API - Todo List.md
+[x] API - Today & Journal.md
+[x] Final Signoff API - Today & Journal.md
+[x] API - Search.md
+[x] Final Signoff API - Search.md
+[x] API - Projects Roadmap.md
+[x] Final Signoff API - Projects Roadmap.md
+[x] API - Stripe & Discord.md
+[x] Final Signoff API - Stripe & Discord.md
+[x] API - Typeform.md
+[x] Final Signoff API - Typeform.md
+Documentation Focus Rules
+- Source-bound only: Document behavior present in code (routes, controllers, and directly invoked model methods). No speculation.
+- No noise: Do NOT mention pagination, rate limits, caching, or generic best practices unless explicitly implemented in code.
+- Precise citations: When referencing behavior, include exact file path and line range (e.g., config/routes.rb:900–915; app/controllers/api/foo_controller.rb:12–48).
+- Scope discipline: Cover only endpoints under `/api/*` for the domain plus “Internal/Unrouted Actions” from the same controller.
+- Examples: Include curl examples for key flows actually supported by the code.
+- Notes: Limit to flags/serialization/aliases that are demonstrably in code (e.g., collection vs member, top-level aliases).
+- Uncertainty: If anything is unclear, annotate with “Unclear — see <file>:<lines>” and ask a single, specific question.
+- Coordination: Mark a doc `[in progress]` before starting, `[x]` when complete, then mark the matching `Final Signoff` when reviewed.
