@@ -44,29 +44,38 @@ The active partial is now `app/views/today/_onboard_account_owners.html.erb` (fo
 - ✅ `should_show_account_onboarding?` lives in `User::OnboardingMeta` and now checks:
   - Gating column `users.should_show_onboarding` (raw column value must be true).
   - Context IDs persisted in onboarding meta (`account_id` and `group_id`).
-  - Rights via `Group#configurable_by?(user)` (Phase 1: group creator or account owner).
+  - Rights via `Group#configurable_by?(user)` (Phase 1: group creator or account owner) and bails out once `onboarding_complete?` returns true.
 - ✅ `Group#configurable_by?(user)` exists with unit coverage in `test/unit/group_test.rb`.
-- TODO Step Trigger Hooks (`app/models/user/onboarding_meta.rb`):
-  1. Implement `vision_step_complete_from_data?`
-  2. Implement `core_values_step_complete_from_data?`
-  3. Implement `customer_flow_step_complete_from_data?`
-  4. Implement `scorecard_step_complete_from_data?`
-  5. Implement `yearly_targets_step_complete_from_data?`
-  6. Extend `onboarding_step_complete_from_data?` to return true when any helper above matches.
-  7. Add unit specs proving each trigger works (Vision/Core Values/Customer Flow/Scorecard/Yearly Targets).
-- TODO Controller Wiring (`today#dashboard`):
-  1. Add failing functional test asserting the controller calls `should_show_account_onboarding?` and sets onboarding view state only when it returns true.
-  2. Implement the controller change and update the view partial wiring.
-  3. Rerun functional + onboarding unit tests to confirm.
+- 🚧 Step Trigger Hooks — ACTION REQUIRED (`app/models/user/onboarding_meta.rb`)
+  - Current state: the dispatcher exists with metadata fallback; Vision, Core Values, Scorecard, and Yearly Targets now run against real data.
+  - Process guardrails:
+    - One mini-project per helper (`vision_step_complete_from_data?`, `core_values_step_complete_from_data?`, `customer_flow_step_complete_from_data?`, `scorecard_step_complete_from_data?`, `yearly_targets_step_complete_from_data?`). Do not stack tasks; finish or park one before starting the next.
+    - Each mini-project must begin by requesting up-to-date completion requirements from Scott before any specs are written. Capture those rules in this document as part of the task kickoff.
+    - Follow strict TDD with Scott in the loop: write failing specs, stop and have Scott run `bundle exec ruby test/unit/user_onboarding_meta_test.rb`, then implement only after the failures are confirmed. Ask Scott to rerun the file after implementation and iterate until green.
+  - Next actions (repeat per helper):
+    1. Record the agreed requirements for the step in this plan (what data/state marks it complete, source tables, edge cases). Link back to the model files noted in `architecture_v2.md` (Vision → `app/models/vision.rb`, Core Values → `app/models/label.rb` + `app/models/adds_on_eos.rb`, Scorecard → `app/models/measure.rb`, Yearly Targets → `app/models/goal.rb`). Vision/Core Values/Scorecard/Yearly Targets are complete; Customer Flow is still blocked on Patrick’s branch.
+    2. Extract shared metadata parsing into a common helper so business rules stay focused on real data checks.
+    3. Add/extend unit specs to cover both the metadata fallback and the new data-driven trigger paths, updating the existing `mark_onboarding_step_complete` integration coverage so it asserts the real-world data, not just ObjectMeta echoing.
+    4. Implement the helper using the documented rules, keeping the account/group context intact and avoiding `default_account`/`default_group`.
+  - Helper snapshot:
+    - ✅ Vision helper implemented (trimmed description/purpose > 20 chars, `Vision` scoped to current team).
+    - ✅ Core Values helper implemented (≥3 labels with trimmed names ≥3 chars on current team context).
+    - ✅ Scorecard helper implemented (≥3 active measures with trimmed names ≥3 chars on current team).
+    - ✅ Yearly Targets helper implemented (requires ≥1 yearly goal + ≥1 rock for the current team, trimmed names ≥3 chars, non-archived).
+    - 🚧 Customer Flow helper blocked until Patrick’s branch merges.
+- ✅ Controller wiring (`today#dashboard`)
+  - Functional coverage now lives in `test/functional/user_onboarding_today_controller_test.rb` and asserts the helper is called, onboarding flags are assigned, and step completion variables drive the view.
+  - Follow-ups:
+    1. Audit the early render path to ensure downstream dashboard data isn’t required elsewhere (add regression coverage if needed).
+    2. Replace the `'#'` placeholder URLs in `_onboard_account_owners.html.erb` once the step flows are ready (track in the UI workstream).
 - TODO Phase 2 Enhancements:
   1. Extend `Group#configurable_by?` to honour config-user delegates (ObjectMeta storage TBD).
   2. Implement invited-helper flag in onboarding meta and update visibility logic/tests accordingly.
 
 ### Current Focus
 - ✅ Onboarding concern now owns all helpers (tests enforce `User::OnboardingMeta` as the single surface).
-- All onboarding helper methods covered via TDD.
-- Next: add model-level onboarding visibility helpers (account-owner rule now; invited-helper rule logged for Phase 2).
-- Controller integration will follow once visibility helpers and tests exist.
+- All foundational helpers covered via TDD; next up is wiring the step-trigger helpers to real data (see tasks above).
+- Controller integration exists; keep iterating on onboarding step flows/URLs and invited-helper rules in Phase 2.
 - When personas beyond visionary/integrator become available, expand specs to assert correct `role_name` mapping for each persona type (still pending).
 
 ### Migration Plan: Extract Onboarding Helpers
@@ -80,11 +89,11 @@ _Completed:_
 - Legacy `test/unit/user_test.rb` currently fails unrelated scenarios; schedule a follow-up cleanup to restore that suite once the onboarding helpers stabilize (log as a separate TODO project).
 
 ## 3. Controller Modifications (today_controller.rb)
-- Deferred until onboarding visibility helpers (account owner + invited helper) are defined and tested.
-- Upcoming controller tasks:
-  - Add failing functional specs asserting `dashboard` relies on the visibility helper and exposes onboarding data for the partial.
-  - Wire the controller to populate those instance variables via the concern helpers.
-  - Re-run functional tests alongside existing unit specs.
+- ✅ `today#dashboard` now calls `should_show_account_onboarding?`, assigns step-completion variables, and short-circuits to render the onboarding partial when appropriate.
+- Functional coverage: `test/functional/user_onboarding_today_controller_test.rb` proves the helper is called for account owners, suppressed for invited users, respects completed onboarding, and honours the `onboarding=true` override for manual QA.
+- Follow-up items:
+  - Confirm the early render path doesn’t break any downstream data expectations (add regression coverage as needed).
+  - Replace temporary `'#'` URLs in `_onboard_account_owners.html.erb` once the step flows are available.
 
 ## 4. View Implementation
 - Create/maintain partial: `app/views/today/_onboard_account_owners.html.erb`
