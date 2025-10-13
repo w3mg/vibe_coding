@@ -22,6 +22,11 @@ Fix compilation errors and bloating in .scss to CSS functionality
 - Develop prompt for Claude Code to assemble list of files  
 - Develop prompt for Claude Code to work on individual files  
 - Fix errors \- replace @extend with mixins (bloating cause)  
+  1. Identify every selector that other rules `@extend` inside the file.  
+  2. Move that selector’s shared declarations into a mixin defined right above it.  
+  3. Keep the selector in place but have it `@include` the new mixin so markup keeps the style.  
+  4. Replace each `@extend <selector>` in the file with `@include <mixin-name>`.  
+  5. Save, let the external Sass watcher rebuild, and confirm the selector still renders correctly with no new errors.  
 - Visual testing by human in local environment  
 - Set up staging server  
 - Confirm push capability to staging server  
