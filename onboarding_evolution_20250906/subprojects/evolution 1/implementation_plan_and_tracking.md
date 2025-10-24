@@ -46,14 +46,14 @@ The active partial is now `app/views/today/_onboard_account_owners.html.erb` (fo
   - Context IDs persisted in onboarding meta (`account_id` and `group_id`).
   - Rights via `Group#configurable_by?(user)` (Phase 1: group creator or account owner) and bails out once `onboarding_complete?` returns true.
 - ✅ `Group#configurable_by?(user)` exists with unit coverage in `test/unit/group_test.rb`.
-- 🚧 Step Trigger Hooks — ACTION REQUIRED (`app/models/user/onboarding_meta.rb`)
-  - Current state: the dispatcher exists with metadata fallback; Vision, Core Values, Scorecard, and Yearly Targets now run against real data.
+- ✅ Step Trigger Hooks — COMPLETE (`app/models/user/onboarding_meta.rb`)
+  - All five step helpers implemented: Vision, Core Values, Customer Flow, Scorecard, and Yearly Targets all run against real data.
   - Process guardrails:
     - One mini-project per helper (`vision_step_complete_from_data?`, `core_values_step_complete_from_data?`, `customer_flow_step_complete_from_data?`, `scorecard_step_complete_from_data?`, `yearly_targets_step_complete_from_data?`). Do not stack tasks; finish or park one before starting the next.
     - Each mini-project must begin by requesting up-to-date completion requirements from Scott before any specs are written. Capture those rules in this document as part of the task kickoff.
     - Follow strict TDD with Scott in the loop: write failing specs, stop and have Scott run `bundle exec ruby test/unit/user_onboarding_meta_test.rb`, then implement only after the failures are confirmed. Ask Scott to rerun the file after implementation and iterate until green.
   - Next actions (repeat per helper):
-    1. Record the agreed requirements for the step in this plan (what data/state marks it complete, source tables, edge cases). Link back to the model files noted in `architecture_v2.md` (Vision → `app/models/vision.rb`, Core Values → `app/models/label.rb` + `app/models/adds_on_eos.rb`, Scorecard → `app/models/measure.rb`, Yearly Targets → `app/models/goal.rb`). Vision/Core Values/Scorecard/Yearly Targets are complete; Customer Flow is still blocked on Patrick’s branch.
+    1. Record the agreed requirements for the step in this plan (what data/state marks it complete, source tables, edge cases). Link back to the model files noted in `architecture_v2.md` (Vision → `app/models/vision.rb`, Core Values → `app/models/label.rb` + `app/models/adds_on_eos.rb`, Scorecard → `app/models/measure.rb`, Yearly Targets → `app/models/goal.rb`, Customer Flow → customer-to-cash mapping model). All five step helpers are complete.
     2. Extract shared metadata parsing into a common helper so business rules stay focused on real data checks.
     3. Add/extend unit specs to cover both the metadata fallback and the new data-driven trigger paths, updating the existing `mark_onboarding_step_complete` integration coverage so it asserts the real-world data, not just ObjectMeta echoing.
     4. Implement the helper using the documented rules, keeping the account/group context intact and avoiding `default_account`/`default_group`.
@@ -62,7 +62,7 @@ The active partial is now `app/views/today/_onboard_account_owners.html.erb` (fo
     - ✅ Core Values helper implemented (≥3 labels with trimmed names ≥3 chars on current team context).
     - ✅ Scorecard helper implemented (≥3 active measures with trimmed names ≥3 chars on current team).
     - ✅ Yearly Targets helper implemented (requires ≥1 yearly goal + ≥1 rock for the current team, trimmed names ≥3 chars, non-archived).
-    - 🚧 Customer Flow helper blocked until Patrick’s branch merges.
+    - ✅ Customer Flow helper implemented and complete.
 - ✅ Controller wiring (`today#dashboard`)
   - Functional coverage now lives in `test/functional/user_onboarding_today_controller_test.rb` and asserts the helper is called, onboarding flags are assigned, and step completion variables drive the view.
   - Follow-ups:

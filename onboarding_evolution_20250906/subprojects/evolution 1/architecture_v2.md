@@ -91,9 +91,11 @@ Document the source-of-truth signals that mark each step finished before touchin
 - _Reference_: `app/models/label.rb` (`labels` table), `AddsOnEOS::VTO` helper at `app/models/adds_on_eos.rb`.
 
 ### Customer Flow
-- _Status_: blocked (Patrick branch).
-- _Notes_: The data source for the customer-to-cash map lives on Patrick’s in-flight branch; document completion rules once those changes merge.
-- _Reference_: pending (Patrick branch).
+- _Status_: ✅ complete.
+- _Completion criteria_:
+  - Customer-to-cash mapping data exists for the group.
+  - Verified via `group.is_customer_to_cash_data_saved?` helper method.
+- _Reference_: `app/models/group.rb` (customer-to-cash implementation), `app/models/user/onboarding_meta.rb:415-447` (completion helper).
 
 ### Scorecard
 - _Status_: confirmed rules.
