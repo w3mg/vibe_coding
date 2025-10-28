@@ -471,79 +471,7 @@ Some files already have conditional logic for Bootstrap versions:
 
 ---
 
-## 15. MIGRATION PRIORITY BY ROUTE
-
-### Phase 1: CRITICAL (Highest Impact)
-**Reason:** Core shared components used everywhere
-
-1. **Shared Widgets**
-   - `/app/views/shared/_w3mgui_elements.html.erb` (128 span classes)
-   - `/app/views/shared/_item_card.html.erb` (35 span classes)
-   - `/app/views/widgets/_navigator.html.erb` (conditional logic exists)
-
-2. **Item Partials**
-   - `/app/views/items/_heading.html.erb`
-   - `/app/views/items/_heading_b3.html.erb`
-
-### Phase 2: HIGH PRIORITY (High Traffic Routes)
-**Reason:** Most frequently accessed by users
-
-1. **Dashboard/Today Routes** (Home/Prioritizer/Timeline already on Bootstrap 3; OKR organizer pending migration)
-   - `/home` → `today#home`
-   - `/prioritizer` → `today#index_selector`
-   - `/timeline` → `today#timeline`
-   - `/today/okr_organizer` → `today#okr_organizer`
-
-2. **Projects Routes**
-   - `/project` → `items#lists_by_status`
-   - `/projects/outline` → `items#project_outline`
-   - `/projects/roadmap` → `items#project_roadmap`
-   - `/items/*` (show, board, table views)
-
-3. **Vision Routes** (Resource pages still Bootstrap 2; canvas/workshop flows already Bootstrap 3)
-   - `/vision` → `groups#canvas_progress`
-   - `/three_year_vision_canvas/` → `visions#three_year_vision`
-   - `/visions/*` (show, edit, index)
-
-### Phase 3: MEDIUM PRIORITY (Important but Contained)
-**Reason:** Significant usage but more isolated
-
-1. **Reports Routes (15+ routes)**
-   - `/update_board` → `reports#update_board`
-   - All reports views (contained in reports/ directory)
-
-2. **Goals/OKR Routes**
-   - `/okr` → `week_plan_actions#for_week`
-   - `/week` → `week_plan_actions#for_week`
-   - `/goals/*` (board, outline, roadmap)
-
-3. **Missions Routes**
-   - `/mission` → `missions#map`
-   - `/missions/grid` → `missions#grid`
-   - `/missions/*` resource routes
-
-### Phase 4: LOWER PRIORITY (One-Time Experiences)
-**Reason:** Important but less frequent access
-
-1. **Quick Start Routes (40+ files)**
-   - `/quick_start/*` → All quick_start views
-   - New user onboarding
-   - Can be migrated as a unit
-
-2. **VTO Routes (15+ routes)**
-   - `/add_on_setup/organize_vision/*` → All VTO views
-   - First-time setup experience
-   - Can be migrated as a unit
-
-### Phase 5: CLEANUP
-1. Remove Bootstrap 2 assets
-2. Remove version-conditional code
-3. Delete `*_old.html.erb` legacy files
-4. Update layout files
-
----
-
-## 16. ROUTES ALREADY ON BOOTSTRAP 3
+## 15. ROUTES ALREADY ON BOOTSTRAP 3
 
 ### ✓ Confirmed Bootstrap 3 Routes
 - `/home` → `today#home` ✓ (layout `b3_application`)
@@ -566,7 +494,7 @@ Some files already have conditional logic for Bootstrap versions:
 
 ---
 
-## 17. STATISTICS SUMMARY
+## 16. STATISTICS SUMMARY
 
 ### By Feature Area
 | Feature Area | Bootstrap 2 Files | Bootstrap 3 Files | Mixed/Notes |
@@ -604,29 +532,7 @@ Some files already have conditional logic for Bootstrap versions:
 
 ---
 
-## 18. NEXT STEPS RECOMMENDATIONS
-
-### Immediate Actions
-1. ✅ **Inventory Complete** - This document
-2. 📋 Create comprehensive test suite before any changes
-3. 🔧 Set up visual regression testing (screenshot comparisons)
-4. 🎯 Prioritize shared components (Phase 1)
-
-### Development Approach
-1. **Use conditional rendering** - Leverage existing `bootstrap_version` pattern
-2. **Create Bootstrap 3 variants** - Keep Bootstrap 2 versions temporarily
-3. **Feature flags** - Gradual rollout by route or user group
-4. **Extensive testing** - Each component before moving to next
-
-### Risk Mitigation
-1. **Never delete Bootstrap 2 files** - Until 100% migrated
-2. **Maintain both asset versions** - During transition
-3. **Monitor production errors** - Post-migration
-4. **Have rollback plan** - For each phase
-
----
-
-## APPENDIX: LAYOUT DECISION TREE
+## 17. LAYOUT DECISION TREE
 
 ```
 Request comes in
@@ -648,7 +554,7 @@ Controller sets layout OR uses default
 
 ---
 
-**Document Status:** FUCKED UP BECAUSE INSTEAD OF STAYING FOCUSED ON BUILDING AN INVENTORY, IT WAS PRESENTED AS A MIGRATION PLAN
+**Document Status:** Complete inventory of Bootstrap 2 usage by route and file path
 **Verification:** All routes verified against config/routes.rb
 **File Counts:** Based on comprehensive grep analysis of 265+ view files
 **Last Updated:** 2025-10-28
