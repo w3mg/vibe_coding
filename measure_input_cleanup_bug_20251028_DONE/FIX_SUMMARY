@@ -1,0 +1,9 @@
+Fix applied to resultmaps-web on 2025-10-28 by Codex (GPT-5)
+
+Key updates
+- Hardened `parseNumberFromString` (public/assets/javascripts/application.js) to gracefully handle null/undefined inputs, stringify non-strings, and default to zero when parsing fails, maintaining support for comma-formatted numbers.
+- Updated `MeasureForm.open` (public/assets/javascripts/measure_form.js) to seed missing `currentValue` and `targetValue` fields with the string "0" so downstream parsing logic receives strings instead of numbers/undefined.
+- Normalized value preparation in `Measure.save` (public/assets/javascripts/models/measure.js) by defaulting nulls to "0", stringifying non-strings, and then parsing, avoiding `.replace`/`.toString` errors while preserving inline-edit cleanup behavior.
+
+Validation
+- Manual confirmation by Scott: new measure creation works for blank, mixed, and formatted values with no regressions observed.
