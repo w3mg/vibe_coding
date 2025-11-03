@@ -1,0 +1,43 @@
+# Suspect CSS Classes and Files
+## CSS Definitions to Investigate for Removal
+
+This document tracks CSS classes and files that may be candidates for removal from the codebase.
+
+---
+
+### 1. Supporting Information and Additional Information Classes
+**Source File**: `application.scss`
+**Status**: Suspect - Under investigation
+**Classes**:
+- `.supporting-information`
+- `.table .td .feed-message-block`
+- `.top_item_additional_information`
+- `.milestone_additional_information`
+- `.item_additional_information`
+
+**Code**:
+```scss
+//item show and progress map subheadings - can be reused anywhere reall
+.supporting-information{
+
+    font-size:.65em;
+    font-weight:normal
+
+}
+
+// resize update stream
+.table .td .feed-message-block{
+    width:10px !important;
+
+}
+
+
+.top_item_additional_information,
+.milestone_additional_information,
+.item_additional_information{
+    font-size:.75em;
+}
+```
+
+**Notes**:
+

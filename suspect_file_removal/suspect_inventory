@@ -1,0 +1,14 @@
+# Suspect Inventory
+## Views and Actions to Investigate for Removal
+
+This document tracks views and actions that may be candidates for removal from the codebase.
+
+---
+
+### 1. status_request_structured.html.erb
+**Path**: `~/Development/resultmaps-web/app/views/communication/status_request_structured.html.erb`
+**Full Path**: `/Users/scottilevy/Development/resultmaps-web/app/views/communication/status_request_structured.html.erb`
+**Type**: View
+**Status**: Under investigation
+**Notes**:
+
