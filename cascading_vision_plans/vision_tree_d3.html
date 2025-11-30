@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cascading Vision Plans – D3 Prototype</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7fb;
+        --card-bg: #fff;
+        --card-border: #dfe3ec;
+        --accent: #3f6ad8;
+        --text: #1b2333;
+        --muted: #5f6b87;
+        --corporate: #e6ecff;
+        --office: #f1f5ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont,
+          "Helvetica Neue", sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f9fafb);
+        color: var(--text);
+      }
+
+      header {
+        padding: 2rem 1.5rem 1rem;
+        text-align: center;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 2vw, 2.4rem);
+      }
+
+      header p {
+        margin: 0.5rem auto 0;
+        max-width: 40rem;
+        color: var(--muted);
+      }
+
+      .tree-wrapper {
+        padding: 0 1.5rem 2rem;
+        overflow-x: auto;
+      }
+
+      .tree-container {
+        position: relative;
+        margin: 0 auto;
+        min-height: 600px;
+        border-radius: 20px;
+        background: var(--bg);
+        box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.05);
+        overflow: visible;
+      }
+
+      .tree-links {
+        position: absolute;
+        inset: 0;
+      }
+
+      .tree-nodes {
+        position: absolute;
+        inset: 0;
+      }
+
+      .node-card {
+        position: absolute;
+        width: 320px;
+        min-height: 190px;
+        padding: 1rem;
+        border-radius: 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        transition: transform 150ms ease, box-shadow 150ms ease;
+      }
+
+      .node-card[data-level="corporate"] {
+        background: var(--corporate);
+      }
+
+      .node-card[data-level="office"] {
+        background: var(--office);
+      }
+
+      .node-card:hover {
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+        transform: translateY(-4px);
+      }
+
+      .node-heading {
+        margin-bottom: 0.75rem;
+      }
+
+      .node-heading p {
+        margin: 0;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .node-heading h3 {
+        margin: 0.2rem 0 0;
+        font-size: 1.2rem;
+      }
+
+      .plan-section {
+        padding: 0.75rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(63, 106, 216, 0.15);
+        margin-bottom: 0.5rem;
+      }
+
+      .plan-section h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+        color: var(--accent);
+      }
+
+      .plan-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.25rem 0.75rem;
+        font-size: 0.85rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .plan-meta span {
+        font-weight: 600;
+      }
+
+      .plan-measurables {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .plan-list {
+        margin: 0.5rem 0 0;
+        padding-left: 1.2rem;
+        font-size: 0.8rem;
+        color: var(--text);
+      }
+
+      .tree-link {
+        fill: none;
+        stroke: rgba(63, 106, 216, 0.35);
+        stroke-width: 2;
+      }
+
+      @media (max-width: 900px) {
+        .node-card {
+          width: 260px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Cascading Vision Plans</h1>
+      <p>Corporate 3-Year Picture and 1-Year Plan with five office rollups rendered as a modern D3 tree.</p>
+    </header>
+    <section class="tree-wrapper">
+      <div class="tree-container">
+        <svg class="tree-links" role="presentation"></svg>
+        <div class="tree-nodes" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <script id="vision-data" type="application/json">
+      {
+        "id": "example-air",
+        "name": "Example Air Systems",
+        "level": "corporate",
+        "vto": {
+          "threeYearPicture": {
+            "futureDate": "2029-12-31",
+            "revenue": "$2.6B",
+            "profit": "$182M",
+            "measurables": "Sales Bookings, Gross Margin, Backlog",
+            "whatDoesItLookLike": [
+              "5 offices operating on unified EOS system",
+              "Industry leader in Texas HVAC market",
+              "Data Center division established in all major metros",
+              "Turnkey capabilities in every office",
+              "85% PM Utilization Rate company-wide"
+            ]
+          },
+          "oneYearPlan": {
+            "futureDate": "2026-12-31",
+            "revenue": "$1.72B",
+            "profit": "$112M",
+            "measurables": "Sales Bookings, Gross Margin"
+          }
+        },
+        "children": [
+          {
+            "id": "dfw",
+            "name": "DFW",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$1.18B",
+                "profit": "$83M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "Largest office in Example Air",
+                  "Data Center team fully operational",
+                  "Turnkey division established",
+                  "Strong succession pipeline"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$776M",
+                "profit": "$54M",
+                "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey"
+              }
+            }
+          },
+          {
+            "id": "houston",
+            "name": "Houston",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$787M",
+                "profit": "$55M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "Data Center team with dedicated leader",
+                  "Industrial Turnkey capabilities",
+                  "Service business at $50M",
+                  "Strong account management"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$518M",
+                "profit": "$34M",
+                "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey"
+              }
+            }
+          },
+          {
+            "id": "austin",
+            "name": "Austin",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$371M",
+                "profit": "$26M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "Data Center leader in Central Texas",
+                  "Turnkey at $40M",
+                  "Controls business established",
+                  "AD Business operational"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$244M",
+                "profit": "$16M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog"
+              }
+            }
+          },
+          {
+            "id": "san-antonio",
+            "name": "San Antonio",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$140M",
+                "profit": "$9M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "RGV market fully developed",
+                  "Hydronics leadership in region",
+                  "Middle Market established",
+                  "Service at $10M"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$92M",
+                "profit": "$6M",
+                "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey"
+              }
+            }
+          },
+          {
+            "id": "west-texas",
+            "name": "West Texas",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$130M",
+                "profit": "$8M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "Core equipment business strong",
+                  "Hydronics presence established",
+                  "Service team built out"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$90M",
+                "profit": "$6M",
+                "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey"
+              }
+            }
+          }
+        ]
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script>
+      const data = JSON.parse(document.getElementById("vision-data").textContent);
+      const container = document.querySelector(".tree-container");
+      const svg = d3.select(".tree-links");
+      const nodesLayer = document.querySelector(".tree-nodes");
+
+      const nodeWidth = 320;
+      const nodeHeight = 210;
+      const verticalSpacing = 120;
+      const horizontalSpacing = 40;
+      const padding = 70;
+
+      function render() {
+        const root = d3.hierarchy(data);
+        const treeLayout = d3.tree().nodeSize([nodeWidth + horizontalSpacing, nodeHeight + verticalSpacing]);
+        treeLayout(root);
+
+        let minX = Infinity;
+        let maxX = -Infinity;
+        root.each((d) => {
+          if (d.x < minX) minX = d.x;
+          if (d.x > maxX) maxX = d.x;
+        });
+
+        const width = maxX - minX + nodeWidth + padding * 2;
+        const height = root.height * (nodeHeight + verticalSpacing) + nodeHeight + padding * 2;
+
+        container.style.width = `${width}px`;
+        container.style.height = `${height}px`;
+        svg.attr("width", width).attr("height", height);
+
+        root.each((d) => {
+          d.xPos = d.x - minX + padding;
+          d.yPos = d.depth * (nodeHeight + verticalSpacing) + padding;
+        });
+
+        const links = root.links().map((link) => ({
+          source: {
+            x: link.source.xPos + nodeWidth / 2,
+            y: link.source.yPos + nodeHeight,
+          },
+          target: {
+            x: link.target.xPos + nodeWidth / 2,
+            y: link.target.yPos,
+          },
+        }));
+
+        const linkGen = d3
+          .linkVertical()
+          .x((d) => d.x)
+          .y((d) => d.y);
+
+        svg
+          .selectAll("path")
+          .data(links)
+          .join("path")
+          .attr("class", "tree-link")
+          .attr("d", (d) => linkGen(d));
+
+        nodesLayer.innerHTML = "";
+        root.each((d) => {
+          const card = document.createElement("article");
+          card.className = "node-card";
+          card.dataset.level = d.data.level;
+          card.style.left = `${d.xPos}px`;
+          card.style.top = `${d.yPos}px`;
+
+          card.innerHTML = createCardHTML(d.data);
+          nodesLayer.appendChild(card);
+        });
+      }
+
+      function createCardHTML(node) {
+        const threeYear = node.vto?.threeYearPicture;
+        const oneYear = node.vto?.oneYearPlan;
+
+        return `
+          <div class="node-heading">
+            <p>${node.level === "corporate" ? "Corporate" : "Office"}</p>
+            <h3>${node.name}</h3>
+          </div>
+          ${threeYear ? renderSection("3-Year Picture", threeYear) : ""}
+          ${oneYear ? renderSection("1-Year Plan", oneYear) : ""}
+        `;
+      }
+
+      function renderSection(title, plan) {
+        const { futureDate, revenue, profit, measurables, whatDoesItLookLike } = plan;
+        const bullets = Array.isArray(whatDoesItLookLike)
+          ? `<ul class="plan-list">${whatDoesItLookLike.map((item) => `<li>${item}</li>`).join("")}</ul>`
+          : "";
+
+        return `
+          <section class="plan-section">
+            <h4>${title}</h4>
+            <div class="plan-meta">
+              ${futureDate ? `<span>Date</span><div>${formatDate(futureDate)}</div>` : ""}
+              ${revenue ? `<span>Revenue</span><div>${revenue}</div>` : ""}
+              ${profit ? `<span>Profit</span><div>${profit}</div>` : ""}
+            </div>
+            ${measurables ? `<p class="plan-measurables"><strong>Measurables:</strong> ${measurables}</p>` : ""}
+            ${bullets}
+          </section>
+        `;
+      }
+
+      function formatDate(input) {
+        if (!input) return "";
+        const date = new Date(input);
+        if (Number.isNaN(date.getTime())) return input;
+        return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      }
+
+      function debounce(fn, wait) {
+        let timeout;
+        return (...args) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn.apply(null, args), wait);
+        };
+      }
+
+      const rerender = debounce(render, 200);
+
+      render();
+      window.addEventListener("resize", rerender);
+    </script>
+  </body>
+</html>
