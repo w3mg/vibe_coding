@@ -1113,9 +1113,9 @@
       drawCardBackground(g, dims, x, y, data.level);
 
       const statusInfo = getStatusConfig(data.status);
-      drawStatusPill(g, x + dims.width/2 - padding - 56, y + padding - 2, statusInfo.label, statusInfo.color);
+      drawStatusPill(g, x + dims.width/2 - padding - 56, y + padding, statusInfo.label, statusInfo.color);
 
-      const titleY = y + padding + 18;
+      const titleY = y + padding + 28;
       const titleLines = wrapText(data.name, 22);
       const lineHeight = 12;
 
