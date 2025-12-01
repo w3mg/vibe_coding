@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cascading Vision Plans – Goals & Rocks D3 Prototype</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7fb;
+        --card-bg: #fff;
+        --card-border: #dfe3ec;
+        --accent: #3f6ad8;
+        --text: #1b2333;
+        --muted: #5f6b87;
+        --corporate: #e6ecff;
+        --office: #f1f5ff;
+        --goal-bg: #fffaf0;
+        --goal-border: #f7d9a6;
+        --rock-bg: #fff5fb;
+        --rock-border: #f5c3e0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont,
+          "Helvetica Neue", sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f9fafb);
+        color: var(--text);
+      }
+
+      header {
+        padding: 2rem 1.5rem 1rem;
+        text-align: center;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 2vw, 2.4rem);
+      }
+
+      header p {
+        margin: 0.5rem auto 0;
+        max-width: 40rem;
+        color: var(--muted);
+      }
+
+      .tree-wrapper {
+        padding: 0 1.5rem 2rem;
+        overflow-x: auto;
+      }
+
+      .tree-container {
+        position: relative;
+        margin: 0 auto;
+        min-height: 600px;
+        border-radius: 20px;
+        background: var(--bg);
+        box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.05);
+        overflow: visible;
+      }
+
+      .tree-links {
+        position: absolute;
+        inset: 0;
+      }
+
+      .tree-nodes {
+        position: absolute;
+        inset: 0;
+      }
+
+      .node-card {
+        position: absolute;
+        width: 360px;
+        min-height: 200px;
+        padding: 1rem;
+        border-radius: 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        transition: transform 150ms ease, box-shadow 150ms ease;
+      }
+
+      .node-card[data-level="corporate"] {
+        background: var(--corporate);
+      }
+
+      .node-card[data-level="office"] {
+        background: var(--office);
+      }
+
+      .node-card[data-level="goal"] {
+        background: var(--goal-bg);
+        border-color: var(--goal-border);
+        min-height: 140px;
+      }
+
+      .node-card[data-level="rock"] {
+        background: var(--rock-bg);
+        border-color: var(--rock-border);
+        min-height: 120px;
+        box-shadow: 0 10px 20px rgba(155, 64, 110, 0.18);
+      }
+
+      .node-card:hover {
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+        transform: translateY(-4px);
+      }
+
+      .node-heading {
+        margin-bottom: 0.75rem;
+      }
+
+      .node-heading p {
+        margin: 0;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .node-heading h3 {
+        margin: 0.2rem 0 0;
+        font-size: 1.2rem;
+      }
+
+      .plan-section {
+        padding: 0.75rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(63, 106, 216, 0.15);
+        margin-bottom: 0.5rem;
+      }
+
+      .plan-section h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+        color: var(--accent);
+      }
+
+      .plan-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.25rem 0.75rem;
+        font-size: 0.85rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .plan-meta span {
+        font-weight: 600;
+      }
+
+      .plan-measurables {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .plan-list {
+        margin: 0.5rem 0 0;
+        padding-left: 1.2rem;
+        font-size: 0.8rem;
+        color: var(--text);
+      }
+
+      .node-description {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .node-description + .node-description {
+        margin-top: 0.35rem;
+      }
+
+      .scorecard-panel {
+        margin-top: 0.85rem;
+        padding: 0.9rem 1rem 1rem;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px dashed rgba(63, 106, 216, 0.35);
+        box-shadow: inset 0 1px 0 rgba(63, 106, 216, 0.1);
+      }
+
+      .scorecard-panel h4 {
+        margin: 0 0 0.6rem;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.35rem 1rem;
+      }
+
+      .scorecard dt {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .scorecard dd {
+        margin: 0;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .node-card.is-collapsible {
+        padding-bottom: 2.6rem;
+        cursor: pointer;
+      }
+
+      .node-toggle {
+        position: absolute;
+        bottom: 0.8rem;
+        left: 50%;
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        border: 1px solid rgba(63, 106, 216, 0.25);
+        background: #fff;
+        color: var(--accent);
+        font-size: 1.1rem;
+        line-height: 1;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+        transform: translateX(-50%);
+      }
+
+      .node-toggle:hover {
+        border-color: rgba(63, 106, 216, 0.5);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+      }
+
+      .tree-link {
+        fill: none;
+        stroke: rgba(63, 106, 216, 0.35);
+        stroke-width: 2;
+      }
+
+      @media (max-width: 900px) {
+        .node-card {
+          width: 260px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Cascading Vision Plans</h1>
+      <p>Corporate 3-Year Picture, 1-Year Plan, and cascading 1-Year Goals with Rocks rendered in a modern D3 tree.</p>
+      </header>
+    <section class="tree-wrapper">
+      <div class="tree-container">
+        <svg class="tree-links" role="presentation"></svg>
+        <div class="tree-nodes" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <script id="vision-data" type="application/json">
+      {
+        "id": "example-air",
+        "name": "Example Air Systems",
+        "level": "corporate",
+        "vto": {
+          "threeYearPicture": {
+            "futureDate": "2029-12-31",
+            "revenue": "$2.6B",
+            "profit": "$182M",
+            "measurables": "Sales Bookings, Gross Margin, Backlog",
+            "whatDoesItLookLike": [
+              "5 offices operating on unified EOS system",
+              "Industry leader in Texas HVAC market",
+              "Data Center division established in all major metros",
+              "Turnkey capabilities in every office",
+              "85% PM Utilization Rate company-wide"
+            ]
+          },
+          "oneYearPlan": {
+            "futureDate": "2026-12-31",
+            "revenue": "$1.72B",
+            "profit": "$112M",
+            "measurables": "Sales Bookings, Gross Margin"
+          }
+        },
+        "children": [
+          {
+            "id": "dfw",
+            "name": "DFW",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$1.18B",
+                "profit": "$83M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "Largest office in Example Air",
+                  "Data Center team fully operational",
+                  "Turnkey division established",
+                  "Strong succession pipeline"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$776M",
+                "profit": "$54M",
+                "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey"
+              }
+            }
+          },
+          {
+            "id": "houston",
+            "name": "Houston",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$787M",
+                "profit": "$55M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "Data Center team with dedicated leader",
+                  "Industrial Turnkey capabilities",
+                  "Service business at $50M",
+                  "Strong account management"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$518M",
+                "profit": "$34M",
+                "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey"
+              }
+            }
+          },
+          {
+            "id": "austin",
+            "name": "Austin",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$371M",
+                "profit": "$26M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "Data Center leader in Central Texas",
+                  "Turnkey at $40M",
+                  "Controls business established",
+                  "AD Business operational"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$244M",
+                "profit": "$16M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog"
+              }
+            }
+          },
+          {
+            "id": "san-antonio",
+            "name": "San Antonio",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$140M",
+                "profit": "$9M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "RGV market fully developed",
+                  "Hydronics leadership in region",
+                  "Middle Market established",
+                  "Service at $10M"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$92M",
+                "profit": "$6M",
+                "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey"
+              }
+            }
+          },
+          {
+            "id": "west-texas",
+            "name": "West Texas",
+            "level": "office",
+            "vto": {
+              "threeYearPicture": {
+                "futureDate": "2029-12-31",
+                "revenue": "$130M",
+                "profit": "$8M",
+                "measurables": "Sales Bookings, Gross Margin, Backlog",
+                "whatDoesItLookLike": [
+                  "Core equipment business strong",
+                  "Hydronics presence established",
+                  "Service team built out"
+                ]
+              },
+              "oneYearPlan": {
+                "futureDate": "2026-12-31",
+                "revenue": "$90M",
+                "profit": "$6M",
+                "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey"
+              }
+            }
+          }
+        ]
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script>
+      const data = JSON.parse(document.getElementById("vision-data").textContent);
+      const container = document.querySelector(".tree-container");
+      const svg = d3.select(".tree-links");
+      const nodesLayer = document.querySelector(".tree-nodes");
+
+      const padding = 70;
+
+      const goalTemplates = [
+        (office) => `Lorem ipsum dolor sit amet as ${office} builds focused growth momentum.`,
+        (office) => `Consectetur adipiscing elit so ${office} aligns talent with standout client experience.`,
+        (office) => `Sed do eiusmod tempor incididunt ut labore while ${office} scales resilient operations.`,
+      ];
+
+      const rockTemplates = [
+        (office, goal, rock) => `Lorem ipsum rock ${rock} keeps ${office} execution clear for goal ${goal}.`,
+        (office, goal, rock) => `Pellentesque rock ${rock} syncs the ${office} crew on goal ${goal}.`,
+        (office, goal, rock) => `Vestibulum ante ipsum rock ${rock} locks revenue guardrails for ${office} goal ${goal}.`,
+      ];
+
+      const officeScorecards = {
+        dfw: [
+          { label: 'Bookings', value: '$742M' },
+          { label: 'Gross Margin', value: '34%' },
+          { label: 'Backlog', value: '$1.9B' }
+        ],
+        houston: [
+          { label: 'Bookings', value: '$498M' },
+          { label: 'Gross Margin', value: '32%' },
+          { label: 'Service', value: '$46M' }
+        ],
+        austin: [
+          { label: 'Bookings', value: '$226M' },
+          { label: 'Gross Margin', value: '31%' },
+          { label: 'Turnkey', value: '$28M' }
+        ],
+        'san-antonio': [
+          { label: 'Bookings', value: '$88M' },
+          { label: 'Gross Margin', value: '29%' },
+          { label: 'Service', value: '$12M' }
+        ],
+        'west-texas': [
+          { label: 'Bookings', value: '$84M' },
+          { label: 'Gross Margin', value: '28%' },
+          { label: 'Hydronics', value: '$24M' }
+        ]
+      };
+
+      const officeGoals = {};
+      data.children.forEach((office) => {
+        officeGoals[office.id] = goalTemplates.map((template, goalIndex) => ({
+          title: `Goal ${goalIndex + 1}`,
+          description: template(office.name),
+          rocks: rockTemplates.map((rockTemplate, rockIndex) =>
+            rockTemplate(office.name, goalIndex + 1, rockIndex + 1)
+          ),
+        }));
+      });
+
+      data.children.forEach((office) => {
+        office.scorecard = officeScorecards[office.id] || null;
+        const goals = officeGoals[office.id];
+        if (!goals) return;
+        office.children = goals.map((goal, goalIndex) => ({
+          id: `${office.id}-goal-${goalIndex + 1}`,
+          name: goal.title,
+          level: "goal",
+          description: goal.description,
+          children: goal.rocks.map((rock, rockIndex) => ({
+            id: `${office.id}-goal-${goalIndex + 1}-rock-${rockIndex + 1}`,
+            name: `Rock ${rockIndex + 1}`,
+            level: "rock",
+            description: rock,
+          })),
+        }));
+      });
+
+      const collapseState = new Map();
+
+      initializeCollapse(data);
+
+      function render() {
+        const root = d3.hierarchy(data, (node) => {
+          if (!node.children || node.children.length === 0) return null;
+          const collapsed = collapseState.get(node.id);
+          return collapsed ? null : node.children;
+        });
+
+        measureNodeWidths(root);
+        assignNodeX(root, padding);
+
+        const width = root.requiredWidth + padding * 2;
+        container.style.width = `${width}px`;
+        svg.attr("width", width);
+
+        const depthHeights = {};
+        const depthGaps = {};
+        root.each((d) => {
+          const dims = getNodeDimensions(d.data.level);
+          depthHeights[d.depth] = Math.max(depthHeights[d.depth] || 0, dims.height);
+          depthGaps[d.depth] = Math.max(depthGaps[d.depth] || 0, dims.gap);
+        });
+
+        const depthOffsets = [];
+        let runningY = padding;
+        for (let depth = 0; depth <= root.height; depth++) {
+          const height = depthHeights[depth] || defaultDimensions.height;
+          depthOffsets[depth] = runningY;
+          runningY += height;
+          if (depth < root.height) {
+            runningY += depthGaps[depth] || defaultDimensions.gap;
+          }
+        }
+        const totalHeight = runningY + padding;
+        container.style.height = `${totalHeight}px`;
+        svg.attr("height", totalHeight);
+
+        root.each((d) => {
+          d.yPos = depthOffsets[d.depth] || padding;
+        });
+
+        const links = root.links().map((link) => ({
+          source: {
+            x: link.source.cardCenterX,
+            y: link.source.yPos + link.source.cardHeight,
+          },
+          target: {
+            x: link.target.cardCenterX,
+            y: link.target.yPos,
+          },
+        }));
+
+        const linkGen = d3
+          .linkVertical()
+          .x((d) => d.x)
+          .y((d) => d.y);
+
+        svg
+          .selectAll("path")
+          .data(links)
+          .join("path")
+          .attr("class", "tree-link")
+          .attr("d", (d) => linkGen(d));
+
+        nodesLayer.innerHTML = "";
+        root.each((d) => {
+          const card = document.createElement("article");
+          card.className = "node-card";
+          card.dataset.level = d.data.level;
+          card.style.left = `${d.cardLeft}px`;
+          card.style.top = `${d.yPos}px`;
+          card.style.width = `${d.cardWidth}px`;
+          card.style.minHeight = `${d.cardHeight}px`;
+
+          const collapsed = collapseState.get(d.data.id) || false;
+          const hasChildren = Array.isArray(d.data.children) && d.data.children.length > 0;
+          card.dataset.collapsed = collapsed;
+          if (hasChildren) {
+            card.classList.add("is-collapsible");
+          }
+
+          card.innerHTML = createCardHTML(d.data);
+          nodesLayer.appendChild(card);
+
+          if (hasChildren) {
+            const toggleButton = document.createElement("button");
+            toggleButton.type = "button";
+            toggleButton.className = "node-toggle";
+            toggleButton.textContent = collapsed ? "+" : "−";
+            toggleButton.setAttribute("aria-label", collapsed ? "Expand" : "Collapse");
+            toggleButton.addEventListener("click", (event) => {
+              event.stopPropagation();
+              toggleNode(d.data.id);
+            });
+            card.appendChild(toggleButton);
+
+            card.addEventListener("click", (event) => {
+              if (event.target.closest(".node-toggle")) return;
+              toggleNode(d.data.id);
+            });
+          }
+        });
+      }
+
+      function createCardHTML(node) {
+        if (node.level === "goal") {
+          return renderGoalCard(node);
+        }
+        if (node.level === "rock") {
+          return renderRockCard(node);
+        }
+
+        const threeYear = node.vto?.threeYearPicture;
+        const oneYear = node.vto?.oneYearPlan;
+        const scorecard = node.scorecard;
+
+        return `
+          <div class="node-heading">
+            <p>${node.level === "corporate" ? "Corporate" : "Office"}</p>
+            <h3>${node.name}</h3>
+          </div>
+          ${threeYear ? renderSection("3-Year Picture", threeYear) : ""}
+          ${oneYear ? renderSection("1-Year Plan", oneYear) : ""}
+          ${scorecard ? renderScorecard(scorecard) : ""}
+        `;
+      }
+
+      function renderSection(title, plan) {
+        const { futureDate, revenue, profit, measurables, whatDoesItLookLike } = plan;
+        const bullets = Array.isArray(whatDoesItLookLike)
+          ? `<ul class="plan-list">${whatDoesItLookLike.map((item) => `<li>${item}</li>`).join("")}</ul>`
+          : "";
+
+        return `
+          <section class="plan-section">
+            <h4>${title}</h4>
+            <div class="plan-meta">
+              ${futureDate ? `<span>Date</span><div>${formatDate(futureDate)}</div>` : ""}
+              ${revenue ? `<span>Revenue</span><div>${revenue}</div>` : ""}
+              ${profit ? `<span>Profit</span><div>${profit}</div>` : ""}
+            </div>
+            ${measurables ? `<p class="plan-measurables"><strong>Measurables:</strong> ${measurables}</p>` : ""}
+            ${bullets}
+          </section>
+        `;
+      }
+
+      function formatDate(input) {
+        if (!input) return "";
+        const date = new Date(input);
+        if (Number.isNaN(date.getTime())) return input;
+        return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      }
+
+      function renderGoalCard(node) {
+        return `
+          <div class="node-heading">
+            <p>1-Year Goal</p>
+            <h3>${node.name}</h3>
+          </div>
+          <p class="node-description">${node.description}</p>
+        `;
+      }
+
+      function renderRockCard(node) {
+        return `
+          <div class="node-heading">
+            <p>Rock</p>
+            <h3>${node.name}</h3>
+          </div>
+          <p class="node-description">${node.description}</p>
+        `;
+      }
+
+      function renderScorecard(entries = []) {
+        if (!entries.length) return '';
+        const mapped = entries
+          .map((entry) => `
+            <div>
+              <dt>${entry.label}</dt>
+              <dd>${entry.value}</dd>
+            </div>
+          `)
+          .join('');
+        return `
+          <section class="scorecard-panel">
+            <h4>Scorecard</h4>
+            <dl class="scorecard">${mapped}</dl>
+          </section>
+        `;
+      }
+
+      function measureNodeWidths(node) {
+        const dims = getNodeDimensions(node.data.level);
+        node.cardWidth = dims.width;
+        node.cardHeight = dims.height;
+
+        if (!node.children || node.children.length === 0) {
+          node.requiredWidth = node.cardWidth;
+          node.childrenWidth = 0;
+          return node.requiredWidth;
+        }
+
+        const gap = levelSiblingGap[node.data.level] ?? levelSiblingGap.default;
+        let totalChildrenWidth = 0;
+        node.children.forEach((child, index) => {
+          const childWidth = measureNodeWidths(child);
+          totalChildrenWidth += childWidth;
+          if (index < node.children.length - 1) {
+            totalChildrenWidth += gap;
+          }
+        });
+
+        node.childrenWidth = totalChildrenWidth;
+        node.requiredWidth = Math.max(node.cardWidth, totalChildrenWidth);
+        return node.requiredWidth;
+      }
+
+      function assignNodeX(node, leftOffset) {
+        const offset = leftOffset + (node.requiredWidth - node.cardWidth) / 2;
+        node.cardLeft = offset;
+        node.cardCenterX = offset + node.cardWidth / 2;
+
+        if (!node.children || node.children.length === 0) return;
+
+        const gap = levelSiblingGap[node.data.level] ?? levelSiblingGap.default;
+        let currentLeft = leftOffset + (node.requiredWidth - node.childrenWidth) / 2;
+        node.children.forEach((child) => {
+          assignNodeX(child, currentLeft);
+          currentLeft += child.requiredWidth + gap;
+        });
+      }
+
+      function getNodeDimensions(level = "office") {
+        return levelDimensions[level] || defaultDimensions;
+      }
+
+      const levelDimensions = {
+        corporate: { width: 360, height: 420, gap: 220 },
+        office: { width: 320, height: 420, gap: 260 },
+        goal: { width: 280, height: 220, gap: 180 },
+        rock: { width: 250, height: 160, gap: 120 },
+      };
+
+      const defaultDimensions = { width: 300, height: 260, gap: 200 };
+
+      const levelSiblingGap = {
+        corporate: 60,
+        office: 50,
+        goal: 40,
+        default: 40,
+      };
+
+      function initializeCollapse(node) {
+        if (!collapseState.has(node.id)) {
+          collapseState.set(node.id, node.level === "office" || node.level === "goal");
+        }
+        (node.children || []).forEach(initializeCollapse);
+      }
+
+      function toggleNode(id) {
+        if (!collapseState.has(id)) return;
+        collapseState.set(id, !collapseState.get(id));
+        render();
+      }
+
+      function debounce(fn, wait) {
+        let timeout;
+        return (...args) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn.apply(null, args), wait);
+        };
+      }
+
+      const rerender = debounce(render, 200);
+
+      render();
+      window.addEventListener("resize", rerender);
+    </script>
+  </body>
+</html>

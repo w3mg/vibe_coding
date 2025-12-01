@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cascading Vision Plans - Vertical</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: #f8f9fb;
+      color: #1a1a2e;
+      padding: 2rem;
+      min-height: 100vh;
+      overflow-x: auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      color: #1a1a2e;
+    }
+
+    .tree-wrapper {
+      position: relative;
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .connector-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .connector-line {
+      fill: none;
+      stroke: #d1d5db;
+      stroke-width: 2;
+    }
+
+    .tree-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3rem;
+      padding: 1rem 0;
+      min-width: 100%;
+      width: max-content;
+      position: relative;
+    }
+
+    .node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3rem;
+    }
+
+    .node-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+      padding: 1.25rem;
+      min-width: 300px;
+      max-width: 340px;
+      position: relative;
+    }
+
+    .node-card.corporate {
+      border-left: 4px solid #2563eb;
+    }
+
+    .node-card.office {
+      border-left: 4px solid #10b981;
+      width: 280px;
+    }
+
+    .node-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .node-name {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .plan-section {
+      margin-bottom: 1rem;
+    }
+
+    .plan-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .plan-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .plan-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric {
+      background: #f9fafb;
+      padding: 0.5rem;
+      border-radius: 6px;
+    }
+
+    .metric-label {
+      font-size: 0.65rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .metric-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .children-container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 1rem;
+      position: relative;
+    }
+
+    .child-node {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .ten-year {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      padding: 0.5rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .ten-year-label {
+      font-size: 0.65rem;
+      color: #0369a1;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .ten-year-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0c4a6e;
+    }
+
+    .measurables {
+      font-size: 0.75rem;
+      color: #6b7280;
+      background: #f9fafb;
+      padding: 0.4rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .measurables-label {
+      font-size: 0.6rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.15rem;
+    }
+
+    .look-like {
+      margin-top: 0.5rem;
+    }
+
+    .look-like-label {
+      font-size: 0.6rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.25rem;
+    }
+
+    .look-like-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .look-like-item {
+      font-size: 0.75rem;
+      color: #4b5563;
+      padding: 0.2rem 0;
+      padding-left: 0.75rem;
+      position: relative;
+    }
+
+    .look-like-item::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: #10b981;
+    }
+
+    .corporate .look-like-item::before {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    const e = React.createElement;
+
+    const visionData = {
+      "id": "example-air",
+      "name": "Example Air Systems",
+      "level": "corporate",
+      "vto": {
+        "tenYearTarget": "$7.0B in Revenue",
+        "threeYearPicture": {
+          "futureDate": "2029-12-31",
+          "revenue": "$2.6B",
+          "profit": "$182M",
+          "measurables": "Sales Bookings, Gross Margin, Backlog",
+          "whatDoesItLookLike": [
+            "5 offices operating on unified EOS system",
+            "Industry leader in Texas HVAC market",
+            "Data Center division established in all major metros",
+            "Turnkey capabilities in every office",
+            "85% PM Utilization Rate company-wide"
+          ]
+        },
+        "oneYearPlan": {
+          "futureDate": "2026-12-31",
+          "revenue": "$1.72B",
+          "profit": "$112M",
+          "measurables": "Sales Bookings, Gross Margin"
+        }
+      },
+      "children": [
+        {
+          "id": "dfw",
+          "name": "DFW",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$1.18B",
+              "profit": "$83M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "Largest office in Example Air",
+                "Data Center team fully operational",
+                "Turnkey division established",
+                "Strong succession pipeline"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$776M",
+              "profit": "$54M",
+              "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey"
+            }
+          }
+        },
+        {
+          "id": "houston",
+          "name": "Houston",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$787M",
+              "profit": "$55M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "Data Center team with dedicated leader",
+                "Industrial Turnkey capabilities",
+                "Service business at $50M",
+                "Strong account management"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$518M",
+              "profit": "$34M",
+              "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey"
+            }
+          }
+        },
+        {
+          "id": "austin",
+          "name": "Austin",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$371M",
+              "profit": "$26M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "Data Center leader in Central Texas",
+                "Turnkey at $40M",
+                "Controls business established",
+                "AD Business operational"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$244M",
+              "profit": "$16M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog"
+            }
+          }
+        },
+        {
+          "id": "san-antonio",
+          "name": "San Antonio",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$140M",
+              "profit": "$9M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "RGV market fully developed",
+                "Hydronics leadership in region",
+                "Middle Market established",
+                "Service at $10M"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$92M",
+              "profit": "$6M",
+              "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey"
+            }
+          }
+        },
+        {
+          "id": "west-texas",
+          "name": "West Texas",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$130M",
+              "profit": "$8M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "Core equipment business strong",
+                "Hydronics presence established",
+                "Service team built out"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$90M",
+              "profit": "$6M",
+              "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey"
+            }
+          }
+        }
+      ]
+    };
+
+    function NodeCard(props) {
+      const node = props.node;
+      const vto = node.vto;
+      const name = node.name;
+      const level = node.level;
+      const isCorporate = level === 'corporate';
+
+      const children = [
+        e('div', { className: 'node-header', key: 'header' },
+          e('span', { className: 'node-name' }, name)
+        )
+      ];
+
+      if (isCorporate && vto.tenYearTarget) {
+        children.push(
+          e('div', { className: 'ten-year', key: 'ten-year' },
+            e('div', { className: 'ten-year-label' }, '10-Year Target'),
+            e('div', { className: 'ten-year-value' }, vto.tenYearTarget)
+          )
+        );
+      }
+
+      var threeYearChildren = [
+        e('div', { className: 'plan-title' }, '3-Year Picture (2029)'),
+        e('div', { className: 'plan-metrics' },
+          e('div', { className: 'metric' },
+            e('div', { className: 'metric-label' }, 'Revenue'),
+            e('div', { className: 'metric-value' }, vto.threeYearPicture.revenue)
+          ),
+          e('div', { className: 'metric' },
+            e('div', { className: 'metric-label' }, 'Profit'),
+            e('div', { className: 'metric-value' }, vto.threeYearPicture.profit)
+          )
+        )
+      ];
+
+      if (vto.threeYearPicture.measurables) {
+        threeYearChildren.push(
+          e('div', { className: 'measurables', key: '3yr-meas' },
+            e('div', { className: 'measurables-label' }, 'Measurables'),
+            vto.threeYearPicture.measurables
+          )
+        );
+      }
+
+      if (vto.threeYearPicture.whatDoesItLookLike && vto.threeYearPicture.whatDoesItLookLike.length > 0) {
+        threeYearChildren.push(
+          e('div', { className: 'look-like', key: '3yr-look' },
+            e('div', { className: 'look-like-label' }, 'What Does It Look Like?'),
+            e('ul', { className: 'look-like-list' },
+              vto.threeYearPicture.whatDoesItLookLike.map(function(item, idx) {
+                return e('li', { className: 'look-like-item', key: idx }, item);
+              })
+            )
+          )
+        );
+      }
+
+      children.push(
+        e('div', { className: 'plan-section', key: '3yr' }, threeYearChildren)
+      );
+
+      var oneYearChildren = [
+        e('div', { className: 'plan-title' }, '1-Year Plan (2026)'),
+        e('div', { className: 'plan-metrics' },
+          e('div', { className: 'metric' },
+            e('div', { className: 'metric-label' }, 'Revenue'),
+            e('div', { className: 'metric-value' }, vto.oneYearPlan.revenue)
+          ),
+          e('div', { className: 'metric' },
+            e('div', { className: 'metric-label' }, 'Profit'),
+            e('div', { className: 'metric-value' }, vto.oneYearPlan.profit)
+          )
+        )
+      ];
+
+      if (vto.oneYearPlan.measurables) {
+        oneYearChildren.push(
+          e('div', { className: 'measurables', key: '1yr-meas' },
+            e('div', { className: 'measurables-label' }, 'Measurables'),
+            vto.oneYearPlan.measurables
+          )
+        );
+      }
+
+      children.push(
+        e('div', { className: 'plan-section', key: '1yr' }, oneYearChildren)
+      );
+
+      return e('div', { 
+        className: 'node-card ' + level,
+        'data-node-id': node.id
+      }, children);
+    }
+
+    function TreeNode(props) {
+      const node = props.node;
+      const hasChildren = node.children && node.children.length > 0;
+
+      const nodeChildren = [e(NodeCard, { node: node, key: 'card' })];
+
+      if (hasChildren) {
+        nodeChildren.push(
+          e('div', { className: 'children-container', key: 'children' },
+            node.children.map(function(child) {
+              return e('div', { className: 'child-node', key: child.id },
+                e(TreeNode, { node: child })
+              );
+            })
+          )
+        );
+      }
+
+      return e('div', { className: 'node' }, nodeChildren);
+    }
+
+    function App() {
+      const wrapperRef = React.useRef(null);
+      const [lines, setLines] = React.useState([]);
+
+      React.useEffect(function() {
+        function calculateLines() {
+          if (!wrapperRef.current) return;
+
+          const wrapper = wrapperRef.current;
+          const wrapperRect = wrapper.getBoundingClientRect();
+          const newLines = [];
+
+          // Find parent node
+          const parentCard = wrapper.querySelector('[data-node-id="example-air"]');
+          if (!parentCard) return;
+
+          const parentRect = parentCard.getBoundingClientRect();
+          const parentBottomX = parentRect.left + parentRect.width / 2 - wrapperRect.left;
+          const parentBottomY = parentRect.bottom - wrapperRect.top;
+
+          // Find all child nodes
+          const childCards = wrapper.querySelectorAll('.office');
+          if (childCards.length === 0) return;
+
+          const childPositions = [];
+          childCards.forEach(function(card) {
+            const rect = card.getBoundingClientRect();
+            childPositions.push({
+              x: rect.left + rect.width / 2 - wrapperRect.left,
+              y: rect.top - wrapperRect.top
+            });
+          });
+
+          // Calculate midpoint Y for horizontal line
+          const midY = parentBottomY + (childPositions[0].y - parentBottomY) / 2;
+
+          // Line from parent down to horizontal bar
+          newLines.push({
+            x1: parentBottomX,
+            y1: parentBottomY,
+            x2: parentBottomX,
+            y2: midY
+          });
+
+          // Horizontal bar spanning all children
+          const leftMostX = Math.min.apply(null, childPositions.map(function(p) { return p.x; }));
+          const rightMostX = Math.max.apply(null, childPositions.map(function(p) { return p.x; }));
+
+          newLines.push({
+            x1: leftMostX,
+            y1: midY,
+            x2: rightMostX,
+            y2: midY
+          });
+
+          // Vertical lines from horizontal bar to each child
+          childPositions.forEach(function(pos) {
+            newLines.push({
+              x1: pos.x,
+              y1: midY,
+              x2: pos.x,
+              y2: pos.y
+            });
+          });
+
+          setLines(newLines);
+        }
+
+        calculateLines();
+        window.addEventListener('resize', calculateLines);
+        return function() {
+          window.removeEventListener('resize', calculateLines);
+        };
+      }, []);
+
+      return e('div', { className: 'tree-wrapper', ref: wrapperRef },
+        e('svg', { className: 'connector-svg', style: { width: '100%', height: '100%' } },
+          lines.map(function(line, idx) {
+            return e('line', {
+              key: idx,
+              className: 'connector-line',
+              x1: line.x1,
+              y1: line.y1,
+              x2: line.x2,
+              y2: line.y2
+            });
+          })
+        ),
+        e('h1', null, 'Cascading Vision Plans'),
+        e('div', { className: 'tree-container' },
+          e(TreeNode, { node: visionData })
+        )
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(e(App));
+  </script>
+</body>
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cascading Vision Plans - Vertical</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: #f8f9fb;
+      color: #1a1a2e;
+      padding: 2rem;
+      min-height: 100vh;
+      overflow: auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      color: #1a1a2e;
+    }
+
+    #tree-svg {
+      display: block;
+    }
+
+    .link {
+      fill: none;
+      stroke: #d1d5db;
+      stroke-width: 2;
+    }
+
+    .node-name {
+      font-weight: 600;
+      font-size: 14px;
+      fill: #1a1a2e;
+    }
+
+    .section-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      fill: #6b7280;
+      font-weight: 500;
+    }
+
+    .metric-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      fill: #9ca3af;
+    }
+
+    .metric-value {
+      font-size: 13px;
+      font-weight: 600;
+      fill: #1a1a2e;
+    }
+
+    .ten-year-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      fill: #0369a1;
+    }
+
+    .ten-year-value {
+      font-size: 15px;
+      font-weight: 600;
+      fill: #0c4a6e;
+    }
+
+    .measurables-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      fill: #9ca3af;
+    }
+
+    .measurables-text {
+      font-size: 10px;
+      fill: #6b7280;
+    }
+
+    .look-like-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      fill: #9ca3af;
+    }
+
+    .look-like-item {
+      font-size: 10px;
+      fill: #4b5563;
+    }
+
+    .header-line {
+      stroke: #e5e7eb;
+      stroke-width: 1;
+    }
+
+    .metric-bg {
+      fill: #f9fafb;
+    }
+
+    .goal-title {
+      font-weight: 600;
+      font-size: 12px;
+      fill: #1a1a2e;
+    }
+
+    .goal-text {
+      font-size: 10px;
+      fill: #4b5563;
+    }
+
+    .rock-title {
+      font-weight: 500;
+      font-size: 11px;
+      fill: #1a1a2e;
+    }
+
+    .rock-text {
+      font-size: 9px;
+      fill: #6b7280;
+    }
+
+    .clickable {
+      cursor: pointer;
+    }
+
+    .clickable:hover rect:first-child {
+      filter: url(#shadowHover);
+    }
+
+    .expand-icon {
+      fill: #9ca3af;
+      font-size: 14px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cascading Vision Plans</h1>
+  <div id="tree-container"></div>
+
+  <script>
+    // Generate lorem ipsum goals and rocks for each office
+    function generateGoals(officeId) {
+      const goalTemplates = [
+        { title: "Increase Market Share", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do." },
+        { title: "Operational Excellence", text: "Ut enim ad minim veniam, quis nostrud exercitation ullamco." },
+        { title: "Customer Satisfaction", text: "Duis aute irure dolor in reprehenderit in voluptate velit esse." }
+      ];
+      
+      const rockTemplates = [
+        { title: "Q1 Rock", text: "Excepteur sint occaecat cupidatat non proident." },
+        { title: "Q2 Rock", text: "Sunt in culpa qui officia deserunt mollit anim." },
+        { title: "Q3 Rock", text: "Sed ut perspiciatis unde omnis iste natus error." }
+      ];
+
+      return goalTemplates.map((goal, gi) => ({
+        id: `${officeId}-goal-${gi}`,
+        name: goal.title,
+        level: "goal",
+        text: goal.text,
+        _children: rockTemplates.map((rock, ri) => ({
+          id: `${officeId}-rock-${gi}-${ri}`,
+          name: rock.title,
+          level: "rock",
+          text: rock.text
+        })),
+        children: null
+      }));
+    }
+
+    const visionData = {
+      "id": "example-air",
+      "name": "Example Air Systems",
+      "level": "corporate",
+      "vto": {
+        "tenYearTarget": "$7.0B in Revenue",
+        "threeYearPicture": {
+          "futureDate": "2029-12-31",
+          "revenue": "$2.6B",
+          "profit": "$182M",
+          "measurables": "Sales Bookings, Gross Margin, Backlog",
+          "whatDoesItLookLike": [
+            "5 offices operating on unified EOS system",
+            "Industry leader in Texas HVAC market",
+            "Data Center division established in all major metros",
+            "Turnkey capabilities in every office",
+            "85% PM Utilization Rate company-wide"
+          ]
+        },
+        "oneYearPlan": {
+          "futureDate": "2026-12-31",
+          "revenue": "$1.72B",
+          "profit": "$112M",
+          "measurables": "Sales Bookings, Gross Margin"
+        }
+      },
+      "children": [
+        {
+          "id": "dfw",
+          "name": "DFW",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": { "revenue": "$1.18B", "profit": "$83M", "measurables": "Sales Bookings, Gross Margin, Backlog", "whatDoesItLookLike": ["Largest office in Example Air", "Data Center team fully operational", "Turnkey division established", "Strong succession pipeline"] },
+            "oneYearPlan": { "revenue": "$776M", "profit": "$54M", "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey" }
+          },
+          "_children": null,
+          "children": null
+        },
+        {
+          "id": "houston",
+          "name": "Houston",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": { "revenue": "$787M", "profit": "$55M", "measurables": "Sales Bookings, Gross Margin, Backlog", "whatDoesItLookLike": ["Data Center team with dedicated leader", "Industrial Turnkey capabilities", "Service business at $50M", "Strong account management"] },
+            "oneYearPlan": { "revenue": "$518M", "profit": "$34M", "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey" }
+          },
+          "_children": null,
+          "children": null
+        },
+        {
+          "id": "austin",
+          "name": "Austin",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": { "revenue": "$371M", "profit": "$26M", "measurables": "Sales Bookings, Gross Margin, Backlog", "whatDoesItLookLike": ["Data Center leader in Central Texas", "Turnkey at $40M", "Controls business established", "AD Business operational"] },
+            "oneYearPlan": { "revenue": "$244M", "profit": "$16M", "measurables": "Sales Bookings, Gross Margin, Backlog" }
+          },
+          "_children": null,
+          "children": null
+        },
+        {
+          "id": "san-antonio",
+          "name": "San Antonio",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": { "revenue": "$140M", "profit": "$9M", "measurables": "Sales Bookings, Gross Margin, Backlog", "whatDoesItLookLike": ["RGV market fully developed", "Hydronics leadership in region", "Middle Market established", "Service at $10M"] },
+            "oneYearPlan": { "revenue": "$92M", "profit": "$6M", "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey" }
+          },
+          "_children": null,
+          "children": null
+        },
+        {
+          "id": "west-texas",
+          "name": "West Texas",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": { "revenue": "$130M", "profit": "$8M", "measurables": "Sales Bookings, Gross Margin, Backlog", "whatDoesItLookLike": ["Core equipment business strong", "Hydronics presence established", "Service team built out"] },
+            "oneYearPlan": { "revenue": "$90M", "profit": "$6M", "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey" }
+          },
+          "_children": null,
+          "children": null
+        }
+      ]
+    };
+
+    // Add goals to offices (collapsed by default)
+    visionData.children.forEach(office => {
+      office._children = generateGoals(office.id);
+    });
+
+    // Card dimensions by level
+    const CARD_DIMS = {
+      corporate: { width: 320, height: 380 },
+      office: { width: 280, height: 320 },
+      goal: { width: 200, height: 80 },
+      rock: { width: 180, height: 65 }
+    };
+
+    const LEVEL_GAP = 60;
+    const SIBLING_GAP = 16;
+
+    // Colors by level
+    const COLORS = {
+      corporate: '#2563eb',
+      office: '#10b981',
+      goal: '#f59e0b',
+      rock: '#8b5cf6'
+    };
+
+    // Create SVG
+    const container = d3.select("#tree-container");
+    const svg = container.append("svg").attr("id", "tree-svg");
+
+    // Defs
+    const defs = svg.append("defs");
+    
+    const gradient = defs.append("linearGradient")
+      .attr("id", "tenYearGradient")
+      .attr("x1", "0%").attr("y1", "0%")
+      .attr("x2", "100%").attr("y2", "100%");
+    gradient.append("stop").attr("offset", "0%").attr("stop-color", "#f0f9ff");
+    gradient.append("stop").attr("offset", "100%").attr("stop-color", "#e0f2fe");
+
+    const filter = defs.append("filter")
+      .attr("id", "shadow")
+      .attr("x", "-20%").attr("y", "-20%")
+      .attr("width", "140%").attr("height", "140%");
+    filter.append("feDropShadow")
+      .attr("dx", "0").attr("dy", "4")
+      .attr("stdDeviation", "6")
+      .attr("flood-color", "rgba(0,0,0,0.08)");
+
+    const filterHover = defs.append("filter")
+      .attr("id", "shadowHover")
+      .attr("x", "-20%").attr("y", "-20%")
+      .attr("width", "140%").attr("height", "140%");
+    filterHover.append("feDropShadow")
+      .attr("dx", "0").attr("dy", "6")
+      .attr("stdDeviation", "10")
+      .attr("flood-color", "rgba(0,0,0,0.12)");
+
+    const linkGroup = svg.append("g").attr("class", "links");
+    const nodeGroup = svg.append("g").attr("class", "nodes");
+
+    function truncateText(text, maxLen) {
+      if (!text) return "";
+      if (text.length <= maxLen) return text;
+      return text.substring(0, maxLen - 3) + "...";
+    }
+
+    // Calculate positions
+    function calculatePositions(node) {
+      if (!node.children || node.children.length === 0) {
+        node.subtreeWidth = CARD_DIMS[node.data.level].width;
+        return;
+      }
+
+      node.children.forEach(calculatePositions);
+
+      const childWidths = node.children.map(c => c.subtreeWidth);
+      const totalChildWidth = d3.sum(childWidths) + (node.children.length - 1) * SIBLING_GAP;
+      
+      node.subtreeWidth = Math.max(CARD_DIMS[node.data.level].width, totalChildWidth);
+    }
+
+    function assignXPositions(node, leftX) {
+      const dims = CARD_DIMS[node.data.level];
+      
+      if (!node.children || node.children.length === 0) {
+        node.x = leftX + node.subtreeWidth / 2;
+        return;
+      }
+
+      const childWidths = node.children.map(c => c.subtreeWidth);
+      const totalChildWidth = d3.sum(childWidths) + (node.children.length - 1) * SIBLING_GAP;
+      
+      let childX = leftX + (node.subtreeWidth - totalChildWidth) / 2;
+      
+      node.children.forEach((child, i) => {
+        assignXPositions(child, childX);
+        childX += child.subtreeWidth + SIBLING_GAP;
+      });
+
+      const firstChild = node.children[0];
+      const lastChild = node.children[node.children.length - 1];
+      node.x = (firstChild.x + lastChild.x) / 2;
+    }
+
+    function assignYPositions(node, y) {
+      const dims = CARD_DIMS[node.data.level];
+      node.y = y;
+      
+      if (node.children) {
+        node.children.forEach(child => {
+          assignYPositions(child, y + dims.height + LEVEL_GAP);
+        });
+      }
+    }
+
+    function toggle(d) {
+      if (d.data.level === 'corporate') return; // Don't toggle corporate
+      
+      if (d.children) {
+        d.data._children = d.data.children;
+        d.data.children = null;
+      } else if (d.data._children) {
+        d.data.children = d.data._children;
+        d.data._children = null;
+      }
+      update();
+    }
+
+    function update() {
+      const root = d3.hierarchy(visionData);
+      
+      calculatePositions(root);
+      assignXPositions(root, 50);
+      assignYPositions(root, 30);
+
+      // Calculate SVG size
+      let maxX = 0, maxY = 0;
+      root.each(node => {
+        const dims = CARD_DIMS[node.data.level];
+        maxX = Math.max(maxX, node.x + dims.width / 2);
+        maxY = Math.max(maxY, node.y + dims.height);
+      });
+
+      svg.attr("width", maxX + 50).attr("height", maxY + 50);
+
+      // Update links
+      const links = [];
+      root.each(node => {
+        if (!node.children) return;
+        
+        const dims = CARD_DIMS[node.data.level];
+        const parentBottom = node.y + dims.height;
+        const childTop = node.children[0].y;
+        const midY = parentBottom + (childTop - parentBottom) / 2;
+
+        links.push({ d: `M${node.x},${parentBottom} L${node.x},${midY}` });
+
+        const leftX = node.children[0].x;
+        const rightX = node.children[node.children.length - 1].x;
+        
+        if (leftX !== rightX) {
+          links.push({ d: `M${leftX},${midY} L${rightX},${midY}` });
+        }
+
+        node.children.forEach(child => {
+          links.push({ d: `M${child.x},${midY} L${child.x},${child.y}` });
+        });
+      });
+
+      linkGroup.selectAll("path").remove();
+      linkGroup.selectAll("path")
+        .data(links)
+        .enter()
+        .append("path")
+        .attr("class", "link")
+        .attr("d", d => d.d);
+
+      // Update nodes
+      nodeGroup.selectAll("g").remove();
+
+      root.each(node => {
+        const g = nodeGroup.append("g");
+        const isClickable = node.data.level === 'office' || node.data.level === 'goal';
+        const hasChildren = node.data._children || node.children;
+        
+        if (isClickable && hasChildren) {
+          g.attr("class", "clickable").on("click", () => toggle(node));
+        }
+
+        switch (node.data.level) {
+          case 'corporate': drawCorporateCard(g, node); break;
+          case 'office': drawOfficeCard(g, node, hasChildren); break;
+          case 'goal': drawGoalCard(g, node, hasChildren); break;
+          case 'rock': drawRockCard(g, node); break;
+        }
+      });
+    }
+
+    function drawCorporateCard(g, node) {
+      const dims = CARD_DIMS.corporate;
+      const x = node.x;
+      const y = node.y;
+      const data = node.data;
+      const vto = data.vto;
+      const padding = 16;
+
+      g.append("rect")
+        .attr("x", x - dims.width/2).attr("y", y)
+        .attr("width", dims.width).attr("height", dims.height)
+        .attr("rx", 12).attr("fill", "white")
+        .attr("filter", "url(#shadow)");
+
+      g.append("rect")
+        .attr("x", x - dims.width/2).attr("y", y)
+        .attr("width", 4).attr("height", dims.height)
+        .attr("fill", COLORS.corporate).attr("rx", 2);
+
+      let cy = y + padding;
+
+      g.append("text").attr("class", "node-name")
+        .attr("x", x - dims.width/2 + padding).attr("y", cy + 14)
+        .text(data.name);
+      cy += 28;
+
+      g.append("line").attr("class", "header-line")
+        .attr("x1", x - dims.width/2 + padding).attr("x2", x + dims.width/2 - padding)
+        .attr("y1", cy).attr("y2", cy);
+      cy += 12;
+
+      if (vto.tenYearTarget) {
+        g.append("rect")
+          .attr("x", x - dims.width/2 + padding).attr("y", cy)
+          .attr("width", dims.width - padding*2).attr("height", 40)
+          .attr("rx", 4).attr("fill", "url(#tenYearGradient)");
+        g.append("text").attr("class", "ten-year-label")
+          .attr("x", x).attr("y", cy + 14).attr("text-anchor", "middle")
+          .text("10-Year Target");
+        g.append("text").attr("class", "ten-year-value")
+          .attr("x", x).attr("y", cy + 32).attr("text-anchor", "middle")
+          .text(vto.tenYearTarget);
+        cy += 48;
+      }
+
+      cy = drawPlanSection(g, x, dims.width, cy, padding, "3-Year Picture (2029)", vto.threeYearPicture, true);
+      cy += 8;
+      drawPlanSection(g, x, dims.width, cy, padding, "1-Year Plan (2026)", vto.oneYearPlan, false);
+    }
+
+    function drawOfficeCard(g, node, hasChildren) {
+      const dims = CARD_DIMS.office;
+      const x = node.x;
+      const y = node.y;
+      const data = node.data;
+      const vto = data.vto;
+      const padding = 14;
+      const isExpanded = !!node.children;
+
+      g.append("rect")
+        .attr("x", x - dims.width/2).attr("y", y)
+        .attr("width", dims.width).attr("height", dims.height)
+        .attr("rx", 12).attr("fill", "white")
+        .attr("filter", "url(#shadow)");
+
+      g.append("rect")
+        .attr("x", x - dims.width/2).attr("y", y)
+        .attr("width", 4).attr("height", dims.height)
+        .attr("fill", COLORS.office).attr("rx", 2);
+
+      let cy = y + padding;
+
+      g.append("text").attr("class", "node-name")
+        .attr("x", x - dims.width/2 + padding).attr("y", cy + 14)
+        .text(data.name);
+
+      // Expand/collapse indicator
+      if (hasChildren) {
+        g.append("text").attr("class", "expand-icon")
+          .attr("x", x + dims.width/2 - padding - 8).attr("y", cy + 14)
+          .attr("text-anchor", "middle")
+          .text(isExpanded ? "−" : "+");
+      }
+
+      cy += 26;
+
+      g.append("line").attr("class", "header-line")
+        .attr("x1", x - dims.width/2 + padding).attr("x2", x + dims.width/2 - padding)
+        .attr("y1", cy).attr("y2", cy);
+      cy += 10;
+
+      cy = drawPlanSection(g, x, dims.width, cy, padding, "3-Year Picture", vto.threeYearPicture, true);
+      cy += 6;
+      drawPlanSection(g, x, dims.width, cy, padding, "1-Year Plan", vto.oneYearPlan, false);
+    }
+
+    function drawPlanSection(g, x, width, cy, padding, title, data, showLookLike) {
+      const leftX = x - width/2 + padding;
+      const contentWidth = width - padding*2;
+      const metricWidth = (contentWidth - 8) / 2;
+
+      g.append("text").attr("class", "section-title")
+        .attr("x", leftX).attr("y", cy + 10)
+        .text(title);
+      cy += 16;
+
+      g.append("rect").attr("class", "metric-bg")
+        .attr("x", leftX).attr("y", cy)
+        .attr("width", metricWidth).attr("height", 40).attr("rx", 4);
+      g.append("text").attr("class", "metric-label")
+        .attr("x", leftX + 6).attr("y", cy + 12).text("Revenue");
+      g.append("text").attr("class", "metric-value")
+        .attr("x", leftX + 6).attr("y", cy + 28).text(data.revenue);
+
+      g.append("rect").attr("class", "metric-bg")
+        .attr("x", leftX + metricWidth + 8).attr("y", cy)
+        .attr("width", metricWidth).attr("height", 40).attr("rx", 4);
+      g.append("text").attr("class", "metric-label")
+        .attr("x", leftX + metricWidth + 14).attr("y", cy + 12).text("Profit");
+      g.append("text").attr("class", "metric-value")
+        .attr("x", leftX + metricWidth + 14).attr("y", cy + 28).text(data.profit);
+      cy += 46;
+
+      if (data.measurables) {
+        g.append("rect").attr("class", "metric-bg")
+          .attr("x", leftX).attr("y", cy)
+          .attr("width", contentWidth).attr("height", 26).attr("rx", 3);
+        g.append("text").attr("class", "measurables-label")
+          .attr("x", leftX + 6).attr("y", cy + 10).text("Measurables");
+        g.append("text").attr("class", "measurables-text")
+          .attr("x", leftX + 6).attr("y", cy + 20)
+          .text(truncateText(data.measurables, 38));
+        cy += 30;
+      }
+
+      if (showLookLike && data.whatDoesItLookLike && data.whatDoesItLookLike.length > 0) {
+        g.append("text").attr("class", "look-like-label")
+          .attr("x", leftX).attr("y", cy + 10).text("What Does It Look Like?");
+        cy += 14;
+        data.whatDoesItLookLike.slice(0, 3).forEach((item, i) => {
+          g.append("text").attr("class", "look-like-item")
+            .attr("x", leftX + 8).attr("y", cy + i * 12 + 10)
+            .text("• " + truncateText(item, 34));
+        });
+        cy += Math.min(data.whatDoesItLookLike.length, 3) * 12 + 4;
+      }
+
+      return cy;
+    }
+
+    function drawGoalCard(g, node, hasChildren) {
+      const dims = CARD_DIMS.goal;
+      const x = node.x;
+      const y = node.y;
+      const data = node.data;
+      const padding = 12;
+      const isExpanded = !!node.children;
+
+      g.append("rect")
+        .attr("x", x - dims.width/2).attr("y", y)
+        .attr("width", dims.width).attr("height", dims.height)
+        .attr("rx", 10).attr("fill", "white")
+        .attr("filter", "url(#shadow)");
+
+      g.append("rect")
+        .attr("x", x - dims.width/2).attr("y", y)
+        .attr("width", 4).attr("height", dims.height)
+        .attr("fill", COLORS.goal).attr("rx", 2);
+
+      g.append("text").attr("class", "goal-title")
+        .attr("x", x - dims.width/2 + padding).attr("y", y + 20)
+        .text(data.name);
+
+      if (hasChildren) {
+        g.append("text").attr("class", "expand-icon")
+          .attr("x", x + dims.width/2 - padding - 4).attr("y", y + 20)
+          .attr("text-anchor", "middle")
+          .text(isExpanded ? "−" : "+");
+      }
+
+      g.append("text").attr("class", "goal-text")
+        .attr("x", x - dims.width/2 + padding).attr("y", y + 38)
+        .text(truncateText(data.text, 28));
+
+      g.append("text").attr("class", "goal-text")
+        .attr("x", x - dims.width/2 + padding).attr("y", y + 52)
+        .text(truncateText(data.text.substring(28), 28));
+    }
+
+    function drawRockCard(g, node) {
+      const dims = CARD_DIMS.rock;
+      const x = node.x;
+      const y = node.y;
+      const data = node.data;
+      const padding = 10;
+
+      g.append("rect")
+        .attr("x", x - dims.width/2).attr("y", y)
+        .attr("width", dims.width).attr("height", dims.height)
+        .attr("rx", 8).attr("fill", "white")
+        .attr("filter", "url(#shadow)");
+
+      g.append("rect")
+        .attr("x", x - dims.width/2).attr("y", y)
+        .attr("width", 3).attr("height", dims.height)
+        .attr("fill", COLORS.rock).attr("rx", 2);
+
+      g.append("text").attr("class", "rock-title")
+        .attr("x", x - dims.width/2 + padding).attr("y", y + 18)
+        .text(data.name);
+
+      g.append("text").attr("class", "rock-text")
+        .attr("x", x - dims.width/2 + padding).attr("y", y + 34)
+        .text(truncateText(data.text, 26));
+
+      g.append("text").attr("class", "rock-text")
+        .attr("x", x - dims.width/2 + padding).attr("y", y + 46)
+        .text(truncateText(data.text.substring(26), 26));
+    }
+
+    // Initial render
+    update();
+  </script>
+</body>
+</html>

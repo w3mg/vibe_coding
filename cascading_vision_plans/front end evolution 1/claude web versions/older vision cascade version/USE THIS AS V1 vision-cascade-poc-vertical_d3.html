@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cascading Vision Plans - Vertical</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: #f8f9fb;
+      color: #1a1a2e;
+      padding: 2rem;
+      min-height: 100vh;
+      overflow-x: auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      color: #1a1a2e;
+    }
+
+    #tree-svg {
+      display: block;
+      margin: 0 auto;
+    }
+
+    .node-card {
+      fill: white;
+      stroke: none;
+    }
+
+    .node-card-border {
+      fill: none;
+      stroke-width: 0;
+    }
+
+    .corporate-accent {
+      fill: #2563eb;
+    }
+
+    .office-accent {
+      fill: #10b981;
+    }
+
+    .link {
+      fill: none;
+      stroke: #d1d5db;
+      stroke-width: 2;
+    }
+
+    .node-name {
+      font-weight: 600;
+      font-size: 14px;
+      fill: #1a1a2e;
+    }
+
+    .section-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      fill: #6b7280;
+      font-weight: 500;
+    }
+
+    .metric-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      fill: #9ca3af;
+    }
+
+    .metric-value {
+      font-size: 13px;
+      font-weight: 600;
+      fill: #1a1a2e;
+    }
+
+    .ten-year-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      fill: #0369a1;
+    }
+
+    .ten-year-value {
+      font-size: 15px;
+      font-weight: 600;
+      fill: #0c4a6e;
+    }
+
+    .measurables-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      fill: #9ca3af;
+    }
+
+    .measurables-text {
+      font-size: 10px;
+      fill: #6b7280;
+    }
+
+    .look-like-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      fill: #9ca3af;
+    }
+
+    .look-like-item {
+      font-size: 10px;
+      fill: #4b5563;
+    }
+
+    .header-line {
+      stroke: #e5e7eb;
+      stroke-width: 1;
+    }
+
+    .metric-bg {
+      fill: #f9fafb;
+      rx: 4;
+    }
+
+    .ten-year-bg {
+      fill: url(#tenYearGradient);
+      rx: 4;
+    }
+
+    .measurables-bg {
+      fill: #f9fafb;
+      rx: 3;
+    }
+
+    .card-shadow {
+      fill: rgba(0,0,0,0.04);
+      filter: url(#shadow);
+    }
+  </style>
+</head>
+<body>
+  <h1>Cascading Vision Plans</h1>
+  <div id="tree-container"></div>
+
+  <script>
+    const visionData = {
+      "id": "example-air",
+      "name": "Example Air Systems",
+      "level": "corporate",
+      "vto": {
+        "tenYearTarget": "$7.0B in Revenue",
+        "threeYearPicture": {
+          "futureDate": "2029-12-31",
+          "revenue": "$2.6B",
+          "profit": "$182M",
+          "measurables": "Sales Bookings, Gross Margin, Backlog",
+          "whatDoesItLookLike": [
+            "5 offices operating on unified EOS system",
+            "Industry leader in Texas HVAC market",
+            "Data Center division established in all major metros",
+            "Turnkey capabilities in every office",
+            "85% PM Utilization Rate company-wide"
+          ]
+        },
+        "oneYearPlan": {
+          "futureDate": "2026-12-31",
+          "revenue": "$1.72B",
+          "profit": "$112M",
+          "measurables": "Sales Bookings, Gross Margin"
+        }
+      },
+      "children": [
+        {
+          "id": "dfw",
+          "name": "DFW",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$1.18B",
+              "profit": "$83M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "Largest office in Example Air",
+                "Data Center team fully operational",
+                "Turnkey division established",
+                "Strong succession pipeline"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$776M",
+              "profit": "$54M",
+              "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey"
+            }
+          }
+        },
+        {
+          "id": "houston",
+          "name": "Houston",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$787M",
+              "profit": "$55M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "Data Center team with dedicated leader",
+                "Industrial Turnkey capabilities",
+                "Service business at $50M",
+                "Strong account management"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$518M",
+              "profit": "$34M",
+              "measurables": "Sales Bookings, Gross Margin, Data Center Bookings, Turnkey"
+            }
+          }
+        },
+        {
+          "id": "austin",
+          "name": "Austin",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$371M",
+              "profit": "$26M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "Data Center leader in Central Texas",
+                "Turnkey at $40M",
+                "Controls business established",
+                "AD Business operational"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$244M",
+              "profit": "$16M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog"
+            }
+          }
+        },
+        {
+          "id": "san-antonio",
+          "name": "San Antonio",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$140M",
+              "profit": "$9M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "RGV market fully developed",
+                "Hydronics leadership in region",
+                "Middle Market established",
+                "Service at $10M"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$92M",
+              "profit": "$6M",
+              "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey"
+            }
+          }
+        },
+        {
+          "id": "west-texas",
+          "name": "West Texas",
+          "level": "office",
+          "vto": {
+            "threeYearPicture": {
+              "futureDate": "2029-12-31",
+              "revenue": "$130M",
+              "profit": "$8M",
+              "measurables": "Sales Bookings, Gross Margin, Backlog",
+              "whatDoesItLookLike": [
+                "Core equipment business strong",
+                "Hydronics presence established",
+                "Service team built out"
+              ]
+            },
+            "oneYearPlan": {
+              "futureDate": "2026-12-31",
+              "revenue": "$90M",
+              "profit": "$6M",
+              "measurables": "Sales Bookings, Gross Margin, Hydronics Bookings, Turnkey"
+            }
+          }
+        }
+      ]
+    };
+
+    // Card dimensions
+    const CARD_WIDTH = 280;
+    const CARD_PADDING = 16;
+    const CARD_GAP = 20;
+
+    // Calculate card height based on content
+    function calculateCardHeight(node) {
+      let height = CARD_PADDING; // top padding
+      height += 20; // name
+      height += 12; // header line margin
+      
+      if (node.level === 'corporate' && node.vto.tenYearTarget) {
+        height += 45; // 10-year target box
+      }
+      
+      // 3-year section
+      height += 18; // title
+      height += 50; // metrics row
+      height += 35; // measurables
+      if (node.vto.threeYearPicture.whatDoesItLookLike) {
+        height += 15; // label
+        height += node.vto.threeYearPicture.whatDoesItLookLike.length * 16; // items
+      }
+      height += 12; // gap
+      
+      // 1-year section
+      height += 18; // title
+      height += 50; // metrics row
+      height += 35; // measurables
+      
+      height += CARD_PADDING; // bottom padding
+      return height;
+    }
+
+    // Convert flat data to hierarchy
+    const root = d3.hierarchy(visionData);
+
+    // Calculate positions using d3.tree
+    const corpHeight = calculateCardHeight(visionData);
+    const childHeight = Math.max(...visionData.children.map(calculateCardHeight));
+    const totalChildrenWidth = visionData.children.length * CARD_WIDTH + (visionData.children.length - 1) * CARD_GAP;
+    
+    const svgWidth = Math.max(totalChildrenWidth + 100, CARD_WIDTH + 100);
+    const svgHeight = corpHeight + childHeight + 120;
+
+    // Create SVG
+    const svg = d3.select("#tree-container")
+      .append("svg")
+      .attr("id", "tree-svg")
+      .attr("width", svgWidth)
+      .attr("height", svgHeight);
+
+    // Define gradient for 10-year target
+    const defs = svg.append("defs");
+    
+    const gradient = defs.append("linearGradient")
+      .attr("id", "tenYearGradient")
+      .attr("x1", "0%")
+      .attr("y1", "0%")
+      .attr("x2", "100%")
+      .attr("y2", "100%");
+    
+    gradient.append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", "#f0f9ff");
+    
+    gradient.append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", "#e0f2fe");
+
+    // Shadow filter
+    const filter = defs.append("filter")
+      .attr("id", "shadow")
+      .attr("x", "-20%")
+      .attr("y", "-20%")
+      .attr("width", "140%")
+      .attr("height", "140%");
+    
+    filter.append("feDropShadow")
+      .attr("dx", "0")
+      .attr("dy", "4")
+      .attr("stdDeviation", "8")
+      .attr("flood-color", "rgba(0,0,0,0.08)");
+
+    // Position nodes
+    const corpX = svgWidth / 2;
+    const corpY = 20;
+    const childrenStartX = (svgWidth - totalChildrenWidth) / 2 + CARD_WIDTH / 2;
+    const childrenY = corpY + corpHeight + 80;
+
+    // Draw links
+    const linkGroup = svg.append("g").attr("class", "links");
+
+    // Vertical line from corporate
+    const corpBottomY = corpY + corpHeight;
+    const midY = corpBottomY + 40;
+
+    linkGroup.append("path")
+      .attr("class", "link")
+      .attr("d", `M${corpX},${corpBottomY} L${corpX},${midY}`);
+
+    // Horizontal line
+    const leftX = childrenStartX;
+    const rightX = childrenStartX + (visionData.children.length - 1) * (CARD_WIDTH + CARD_GAP);
+
+    linkGroup.append("path")
+      .attr("class", "link")
+      .attr("d", `M${leftX},${midY} L${rightX},${midY}`);
+
+    // Vertical lines to children
+    visionData.children.forEach((child, i) => {
+      const childX = childrenStartX + i * (CARD_WIDTH + CARD_GAP);
+      linkGroup.append("path")
+        .attr("class", "link")
+        .attr("d", `M${childX},${midY} L${childX},${childrenY}`);
+    });
+
+    // Draw node cards
+    function drawCard(g, node, x, y, width, height) {
+      const isCorporate = node.level === 'corporate';
+      const accentColor = isCorporate ? '#2563eb' : '#10b981';
+      
+      // Card background with shadow
+      g.append("rect")
+        .attr("x", x - width/2)
+        .attr("y", y)
+        .attr("width", width)
+        .attr("height", height)
+        .attr("rx", 12)
+        .attr("fill", "white")
+        .attr("filter", "url(#shadow)");
+
+      // Left accent bar
+      g.append("rect")
+        .attr("x", x - width/2)
+        .attr("y", y)
+        .attr("width", 4)
+        .attr("height", height)
+        .attr("fill", accentColor)
+        .attr("rx", 2);
+
+      let currentY = y + CARD_PADDING;
+
+      // Name
+      g.append("text")
+        .attr("class", "node-name")
+        .attr("x", x - width/2 + CARD_PADDING)
+        .attr("y", currentY + 14)
+        .text(node.name);
+
+      currentY += 24;
+
+      // Header line
+      g.append("line")
+        .attr("class", "header-line")
+        .attr("x1", x - width/2 + CARD_PADDING)
+        .attr("x2", x + width/2 - CARD_PADDING)
+        .attr("y1", currentY)
+        .attr("y2", currentY);
+
+      currentY += 12;
+
+      // 10-year target (corporate only)
+      if (isCorporate && node.vto.tenYearTarget) {
+        g.append("rect")
+          .attr("class", "ten-year-bg")
+          .attr("x", x - width/2 + CARD_PADDING)
+          .attr("y", currentY)
+          .attr("width", width - CARD_PADDING * 2)
+          .attr("height", 40);
+
+        g.append("text")
+          .attr("class", "ten-year-label")
+          .attr("x", x)
+          .attr("y", currentY + 14)
+          .attr("text-anchor", "middle")
+          .text("10-Year Target");
+
+        g.append("text")
+          .attr("class", "ten-year-value")
+          .attr("x", x)
+          .attr("y", currentY + 32)
+          .attr("text-anchor", "middle")
+          .text(node.vto.tenYearTarget);
+
+        currentY += 48;
+      }
+
+      // 3-Year Picture
+      currentY = drawPlanSection(g, node, x, y, width, currentY, 
+        "3-Year Picture (2029)", 
+        node.vto.threeYearPicture,
+        true,
+        accentColor);
+
+      currentY += 8;
+
+      // 1-Year Plan
+      drawPlanSection(g, node, x, y, width, currentY,
+        "1-Year Plan (2026)",
+        node.vto.oneYearPlan,
+        false,
+        accentColor);
+    }
+
+    function drawPlanSection(g, node, x, y, width, currentY, title, data, showLookLike, accentColor) {
+      const leftX = x - width/2 + CARD_PADDING;
+      const contentWidth = width - CARD_PADDING * 2;
+      const metricWidth = (contentWidth - 8) / 2;
+
+      // Section title
+      g.append("text")
+        .attr("class", "section-title")
+        .attr("x", leftX)
+        .attr("y", currentY + 10)
+        .text(title);
+
+      currentY += 18;
+
+      // Metrics row
+      // Revenue
+      g.append("rect")
+        .attr("class", "metric-bg")
+        .attr("x", leftX)
+        .attr("y", currentY)
+        .attr("width", metricWidth)
+        .attr("height", 44);
+
+      g.append("text")
+        .attr("class", "metric-label")
+        .attr("x", leftX + 8)
+        .attr("y", currentY + 14)
+        .text("Revenue");
+
+      g.append("text")
+        .attr("class", "metric-value")
+        .attr("x", leftX + 8)
+        .attr("y", currentY + 32)
+        .text(data.revenue);
+
+      // Profit
+      g.append("rect")
+        .attr("class", "metric-bg")
+        .attr("x", leftX + metricWidth + 8)
+        .attr("y", currentY)
+        .attr("width", metricWidth)
+        .attr("height", 44);
+
+      g.append("text")
+        .attr("class", "metric-label")
+        .attr("x", leftX + metricWidth + 16)
+        .attr("y", currentY + 14)
+        .text("Profit");
+
+      g.append("text")
+        .attr("class", "metric-value")
+        .attr("x", leftX + metricWidth + 16)
+        .attr("y", currentY + 32)
+        .text(data.profit);
+
+      currentY += 52;
+
+      // Measurables
+      if (data.measurables) {
+        g.append("rect")
+          .attr("class", "measurables-bg")
+          .attr("x", leftX)
+          .attr("y", currentY)
+          .attr("width", contentWidth)
+          .attr("height", 30);
+
+        g.append("text")
+          .attr("class", "measurables-label")
+          .attr("x", leftX + 8)
+          .attr("y", currentY + 10)
+          .text("Measurables");
+
+        g.append("text")
+          .attr("class", "measurables-text")
+          .attr("x", leftX + 8)
+          .attr("y", currentY + 22)
+          .text(truncateText(data.measurables, 38));
+
+        currentY += 36;
+      }
+
+      // What does it look like
+      if (showLookLike && data.whatDoesItLookLike && data.whatDoesItLookLike.length > 0) {
+        g.append("text")
+          .attr("class", "look-like-label")
+          .attr("x", leftX)
+          .attr("y", currentY + 10)
+          .text("What Does It Look Like?");
+
+        currentY += 16;
+
+        data.whatDoesItLookLike.forEach((item, i) => {
+          g.append("text")
+            .attr("class", "look-like-item")
+            .attr("x", leftX + 10)
+            .attr("y", currentY + i * 14 + 10)
+            .text("• " + truncateText(item, 36));
+        });
+
+        currentY += data.whatDoesItLookLike.length * 14 + 4;
+      }
+
+      return currentY;
+    }
+
+    function truncateText(text, maxLen) {
+      if (text.length <= maxLen) return text;
+      return text.substring(0, maxLen - 3) + "...";
+    }
+
+    // Draw corporate card
+    const corpGroup = svg.append("g");
+    drawCard(corpGroup, visionData, corpX, corpY, CARD_WIDTH + 40, corpHeight);
+
+    // Draw child cards
+    visionData.children.forEach((child, i) => {
+      const childX = childrenStartX + i * (CARD_WIDTH + CARD_GAP);
+      const childGroup = svg.append("g");
+      drawCard(childGroup, child, childX, childrenY, CARD_WIDTH, childHeight);
+    });
+  </script>
+</body>
+</html>
