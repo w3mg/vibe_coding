@@ -667,6 +667,25 @@
       return text.substring(0, maxLen - 3) + "...";
     }
 
+    function wrapText(text, maxCharsPerLine) {
+      if (!text) return [];
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = '';
+
+      words.forEach(word => {
+        const testLine = currentLine ? currentLine + ' ' + word : word;
+        if (testLine.length <= maxCharsPerLine) {
+          currentLine = testLine;
+        } else {
+          if (currentLine) lines.push(currentLine);
+          currentLine = word;
+        }
+      });
+      if (currentLine) lines.push(currentLine);
+      return lines;
+    }
+
     function formatCurrency(value) {
       if (value >= 1000000000) {
         return "$" + (value / 1000000000).toFixed(2) + "B";
@@ -1067,21 +1086,17 @@
       drawCardBackground(g, dims, x, y, data.level);
 
       const statusInfo = getStatusConfig(data.status);
-      drawStatusPill(g, x + dims.width/2 - padding - 56, y + padding / 2, statusInfo.label, statusInfo.color);
+      drawStatusPill(g, x + dims.width/2 - padding - 56, y + padding - 2, statusInfo.label, statusInfo.color);
 
-      const titleY = y + padding + 26;
+      const titleY = y + padding + 24;
+      const titleLines = wrapText(data.name, 24);
+      const lineHeight = 14;
 
-      g.append("text").attr("class", "goal-title")
-        .attr("x", x - dims.width/2 + padding).attr("y", titleY)
-        .text(data.name);
-
-      g.append("text").attr("class", "goal-text")
-        .attr("x", x - dims.width/2 + padding).attr("y", titleY + 18)
-        .text(truncateText(data.text, 28));
-
-      g.append("text").attr("class", "goal-text")
-        .attr("x", x - dims.width/2 + padding).attr("y", titleY + 32)
-        .text(truncateText(data.text.substring(28), 28));
+      titleLines.forEach((line, i) => {
+        g.append("text").attr("class", "goal-title")
+          .attr("x", x - dims.width/2 + padding).attr("y", titleY + i * lineHeight)
+          .text(line);
+      });
 
       if (hasRocks) {
         drawBadge(g, x, y + dims.height - 26, "Rocks", hasRocksExpanded, COLORS.rock, () => toggleRocks(data), true, true);
@@ -1098,21 +1113,17 @@
       drawCardBackground(g, dims, x, y, data.level);
 
       const statusInfo = getStatusConfig(data.status);
-      drawStatusPill(g, x + dims.width/2 - padding - 56, y + 6, statusInfo.label, statusInfo.color);
+      drawStatusPill(g, x + dims.width/2 - padding - 56, y + padding - 2, statusInfo.label, statusInfo.color);
 
-      const textStartY = y + 26;
+      const titleY = y + padding + 18;
+      const titleLines = wrapText(data.name, 22);
+      const lineHeight = 12;
 
-      g.append("text").attr("class", "rock-title")
-        .attr("x", x - dims.width/2 + padding).attr("y", textStartY)
-        .text(data.name);
-
-      g.append("text").attr("class", "rock-text")
-        .attr("x", x - dims.width/2 + padding).attr("y", textStartY + 16)
-        .text(truncateText(data.text, 26));
-
-      g.append("text").attr("class", "rock-text")
-        .attr("x", x - dims.width/2 + padding).attr("y", textStartY + 28)
-        .text(truncateText(data.text.substring(26), 26));
+      titleLines.forEach((line, i) => {
+        g.append("text").attr("class", "rock-title")
+          .attr("x", x - dims.width/2 + padding).attr("y", titleY + i * lineHeight)
+          .text(line);
+      });
     }
 
     function drawScorecardCard(g, node) {
