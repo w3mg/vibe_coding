@@ -219,6 +219,7 @@
       "id": "example-air",
       "name": "Example Air Systems",
       "level": "corporate",
+      "accountable": { "name": "James Mitchell" },
       "vto": {
         "tenYearTarget": "$7.0B in Revenue",
         "threeYearPicture": {
@@ -648,6 +649,7 @@
 
     // Avatar photos for accountable people
     const AVATARS = {
+      'James Mitchell': 'https://randomuser.me/api/portraits/men/52.jpg',
       'Sue Baylor': 'https://randomuser.me/api/portraits/women/65.jpg',
       'Evan Opsnopolis': 'https://randomuser.me/api/portraits/men/75.jpg',
       'Lisa Thompson': 'https://randomuser.me/api/portraits/women/26.jpg',
@@ -833,7 +835,8 @@
           id: parentData.id + '-scorecard',
           name: 'Scorecard',
           level: 'scorecard',
-          scorecard: parentData.scorecard
+          scorecard: parentData.scorecard,
+          accountable: parentData.accountable
         };
         parentData._scorecardNode = scorecardNode;
         if (!parentData.children) parentData.children = [];
@@ -1032,6 +1035,24 @@
       g.append("text").attr("class", "node-name")
         .attr("x", x - dims.width/2 + padding).attr("y", cy + 14)
         .text(data.name);
+
+      // Render accountable avatar to the right of the name
+      if (data.accountable && data.accountable.name) {
+        const avatarSize = 24;
+        const avatarUrl = AVATARS[data.accountable.name];
+        if (avatarUrl) {
+          g.append("foreignObject")
+            .attr("x", x + dims.width/2 - padding - avatarSize)
+            .attr("y", cy)
+            .attr("width", avatarSize)
+            .attr("height", avatarSize)
+            .append("xhtml:img")
+            .attr("src", avatarUrl)
+            .style("width", avatarSize + "px")
+            .style("height", avatarSize + "px")
+            .style("border-radius", "50%");
+        }
+      }
       cy += 28;
 
       g.append("line").attr("class", "header-line")
@@ -1294,6 +1315,24 @@
       g.append("text").attr("class", "node-name")
         .attr("x", leftX).attr("y", cy + 12)
         .text("Scorecard");
+
+      // Render accountable avatar to the right of the title
+      if (data.accountable && data.accountable.name) {
+        const avatarSize = 24;
+        const avatarUrl = AVATARS[data.accountable.name];
+        if (avatarUrl) {
+          g.append("foreignObject")
+            .attr("x", x + dims.width/2 - padding - avatarSize)
+            .attr("y", cy)
+            .attr("width", avatarSize)
+            .attr("height", avatarSize)
+            .append("xhtml:img")
+            .attr("src", avatarUrl)
+            .style("width", avatarSize + "px")
+            .style("height", avatarSize + "px")
+            .style("border-radius", "50%");
+        }
+      }
       cy += 24;
 
       g.append("text").attr("class", "scorecard-header")
