@@ -14,6 +14,8 @@
 
 ## Overview
 
+Clarification: This specification should be treated as a collection/application of independent skills/agents, not a standalone monolith.
+
 This feature introduces an AI-powered chat workflow for updating scorecard measurables. The scorecard is an object composed of multiple measurables, tracked weekly (similar to frames in a bowling or golf scorecard). Users can update their assigned measurables either one at a time or several at once.
 
 **Key Points:**

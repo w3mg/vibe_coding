@@ -8,6 +8,51 @@
 
 Enable seat occupants to generate a self-assessment worksheet PDF ahead of performance reviews. The worksheet combines existing seat data with structured self-assessment forms (GWC scorecard, company alignment, 90-day reflection, START/STOP/KEEP).
 
+## Existing Architecture: Decoupled Seat Print Module
+
+**Key Discovery:** A decoupled, reusable seat printing architecture already exists and is in use.
+
+### `seat_print_module.js` (Shared Module)
+
+**Location:** `public/assets/javascripts/seat_print_module.js`
+
+**Already Used By:**
+- `app/views/reports/process_playbook_inventory.html.erb` (line 103)
+  - Includes via `<script src="/assets/javascripts/seat_print_module.js"></script>`
+  - Uses `SeatPrintModule.loadImageData()` and `SeatPrintModule.addProcessDocumentPage()`
+  - Follows adapter pattern: normalizes seat data before calling module
+
+**Current Public API:**
+```javascript
+window.SeatPrintModule = {
+  loadImageData(url),              // Returns Promise<Base64|null>
+  writeList(doc, opts),            // Returns new Y position
+  writeListWithLinks(doc, opts),   // Returns new Y position
+  addProcessDocumentPage(doc, seat, options)  // Void
+}
+```
+
+**Architecture Pattern:**
+```
+Entry Point (Report Page or Modal)
+  ├─ Fetches/normalizes seat data
+  ├─ Includes seat_print_module.js
+  └─ Calls SeatPrintModule.methodName(doc, normalizedData)
+        └─ Module handles PDF rendering (no global dependencies)
+```
+
+### Why This Matters
+
+The `_accountability_chart_print.html.erb` partial has **duplicate code** that wasn't migrated to use the shared module. For this feature, we will:
+
+1. **Add new page builders to `seat_print_module.js`** (the shared module)
+2. **Both entry points call the same module** - no code duplication
+3. **Follow the established pattern** from Process Playbook Inventory report
+
+This ensures the Review Prep feature is reusable from any page that includes the module.
+
+---
+
 ## Access Points
 
 1. **Seat Modal Print Dropdown**
@@ -112,41 +157,74 @@ ResultMaps logo header only - blank page for additional notes.
 
 ## Implementation Plan
 
-### Phase 1: Core PDF Generation Function
+### Phase 1: Extend Shared Module
 
-**File:** `app/views/widgets/_accountability_chart_print.html.erb`
+**File:** `public/assets/javascripts/seat_print_module.js`
 
-Add new function `printSeatReviewPrep(targetSeat)`:
+Add new functions to `SeatPrintModule`:
 
 ```javascript
-window.printSeatReviewPrep = function(targetSeat) {
-  // 1. Initialize jsPDF (letter, portrait)
-  // 2. Get seat data (reuse existing helpers)
-  // 3. Add seat summary pages (reuse addSeatSummaryPage or variant)
-  // 4. Add GWC scorecard page (new: addGWCScorecardPage)
-  // 5. Add Company/Empowered page (new: addCompanyAssessmentPage)
-  // 6. Add 90-day reflection page (new: addReflectionPage)
-  // 7. Add START/STOP/KEEP page (new: addStartStopKeepPage)
-  // 8. Add blank notes page
-  // 9. Save PDF
+window.SeatPrintModule = {
+  // Existing functions...
+  loadImageData(url),
+  writeList(doc, opts),
+  writeListWithLinks(doc, opts),
+  addProcessDocumentPage(doc, seat, options),
+
+  // NEW: Review Prep page builders
+  addSeatSummaryPage(doc, seat, options),      // Extract from _accountability_chart_print
+  addGWCScorecardPage(doc, seatOwnerName),     // Gets It + Wants It tables
+  addCompanyAssessmentPage(doc),               // Company/Empowered Execution
+  addReflectionPage(doc),                      // 90-day reflection boxes
+  addStartStopKeepPage(doc),                   // START/STOP/KEEP boxes
+  addBlankNotesPage(doc),                      // Blank page with header
+
+  // NEW: Utility functions
+  drawRatingTable(doc, title, items, y),       // Reusable table with rating boxes
+  drawFreeformBox(doc, title, instructions, y, height),  // Empty box renderer
+
+  // NEW: Main orchestrator
+  generateReviewPrepPdf(seat, options)         // Orchestrates full PDF generation
+}
+```
+
+### Phase 2: Entry Point - Seat Modal
+
+**File:** `app/views/groups/accountability_chart.html.erb`
+
+Add thin wrapper that normalizes Knockout data and calls module:
+
+```javascript
+window.printSeatReviewPrep = function() {
+  var seat = window.viewModel && viewModel.selectedSeat;
+  if (!seat) { return reportActionResult('No seat selected', 'negative'); }
+
+  // Normalize Knockout observables to plain object
+  var normalizedSeat = {
+    id: unwrapObservable(seat.id),
+    title: unwrapObservable(seat.title),
+    userName: seatOwnerName(seat),
+    // ... other fields
+  };
+
+  SeatPrintModule.generateReviewPrepPdf(normalizedSeat, {
+    measuresIndex: measuresBySeat(),
+    fetchProcessItems: fetchSeatProcessItems
+  });
 };
 ```
 
-### Phase 2: PDF Page Builders
+### Phase 3: Entry Point - Reports Page
 
-New helper functions:
+**File:** `app/views/reports/seat_review_prep.html.erb` (new)
 
-| Function | Purpose |
-|----------|---------|
-| `addGWCScorecardPage(doc, seatOwnerName)` | Render Gets It + Wants It tables |
-| `addCompanyAssessmentPage(doc)` | Render Company/Empowered Execution table |
-| `addReflectionPage(doc)` | Render 90-day reflection boxes |
-| `addStartStopKeepPage(doc)` | Render START/STOP/KEEP boxes |
-| `addBlankNotesPage(doc)` | Render blank page with header |
-| `drawRatingTable(doc, title, items, y)` | Reusable table renderer with rating boxes |
-| `drawFreeformBox(doc, title, instructions, y, height)` | Reusable empty box renderer |
+Add report page that:
+1. Includes `seat_print_module.js`
+2. Loads seat data from `@seats` (injected by controller)
+3. Shows seat selector dropdown
+4. Calls `SeatPrintModule.generateReviewPrepPdf(normalizedSeat, options)`
 
-### Phase 3: UI - Seat Modal Dropdown
+### Phase 4: UI - Seat Modal Dropdown
 
 **File:** `app/views/groups/accountability_chart.html.erb:424`
 
@@ -180,10 +258,12 @@ Add report card/link for "Seat Review Prep" that:
 
 | File | Change Type | Description |
 |------|-------------|-------------|
-| `app/views/widgets/_accountability_chart_print.html.erb` | Modify | Add `printSeatReviewPrep()` and helper functions |
-| `app/views/groups/accountability_chart.html.erb` | Modify | Convert print icon to dropdown (~line 424) |
-| `app/views/reports/` | Add/Modify | Add Seat Review Prep report access |
-| `public/assets/javascripts/seat_print_module.js` | Optional | Extract reusable functions if helpful |
+| `public/assets/javascripts/seat_print_module.js` | **Modify** | Add review prep page builders and orchestrator (PRIMARY) |
+| `app/views/groups/accountability_chart.html.erb` | Modify | Convert print icon to dropdown (~line 424), add thin wrapper |
+| `app/views/reports/seat_review_prep.html.erb` | **Add** | New report page for seat selection + print |
+| `app/controllers/reports_controller.rb` | Modify | Add `seat_review_prep` action |
+| `config/routes.rb` | Modify | Add route for seat review prep report |
+| `app/views/widgets/_accountability_chart_print.html.erb` | No change | Existing code remains (not refactored in this feature) |
 
 ---
 

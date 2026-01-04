@@ -21,14 +21,11 @@ See `seat-printables-decoupling.md`.
 
 **Status:** Not started
 
+
+
+
 ---
 
-### Quick Wins Tab
-
-**Scope:**
-- Add a "Quick Wins" tab to the seats modal
-
-**Status:** Not started
 
 ---
 
