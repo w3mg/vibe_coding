@@ -53,7 +53,6 @@ The code we are evaluating is: `/Users/scottilevy/Development/resultmaps-web`
 ---
 ## OPEN TODOS
 
-- TODO-008: Evaluate the “ONE APPROACH THAT IS WORTH EVALUATING” section and decide whether to adopt it (or reject it) for the new architecture.
 - TODO-001: Review `agent_type` naming and routing for alignment with skill/agent architecture (customer_to_cash, scorecard_measurables).
 - TODO-002: Define a strategy for pulling the best working elements from reviewed branches into the central branch.
 - TODO-003: Update `/doc` with the ultimate functionality once the architecture is finalized.
@@ -429,28 +428,4 @@ We reviewed the onboarding scorecard flow to decide how to label it. The page `/
 
 - `scorecard_measurables` is a reference for an agentic flow only; the current pattern is clunky and not a target user experience.
 
----
-## ONE APPROACH THAT IS WORTH EVALUATING
 
-**Routes**
-- UI: `/agents/launchpad`, `/agents/skills/:skill`
-- API: `/api/agents/skills/:skill/init`, `/api/agents/skills/:skill/message`
-
-**Controllers**
-- `AgentsController`: `launchpad` + `skill` (shared UI shell for skills)
-- `Api::Agents::SkillsController`: `init` + `message`, delegates to skill runner by name
-
-**Models / Services**
-- `app/models/agents/skills/<skill>.rb` with `init(user, group, data)` and `message(user, group, messages, data)`
-- `app/models/agents/skill_runner.rb` for loading skills and shared error handling
-- `app/models/agents/llm_client.rb` for all LLM API calls
-
-**Views / JS**
-- One shared view: `app/views/agents/skill.html.erb`
-- One shared JS controller that reads `skill` from params and calls the API endpoints
-
-**Why this fits core values**
-- Simple: one UI shell, one API controller, one runner
-- Reusable: skills are isolated classes with a small interface
-- Decoupled: skills don't depend on each other; agent routes by name
-- Docs can match code: few moving parts, consistent paths
