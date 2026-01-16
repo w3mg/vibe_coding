@@ -16,6 +16,13 @@ Rename existing infrastructure, don't add new layers.
 
 ---
 
+## Working Functionality to Review for Migration
+
+- `/ai_agent/customer_to_cash` - isolated skill test route
+- `/ai_agent/scorecard_measurables` - isolated skill test route
+
+---
+
 ## Controller
 
 - Rename `Api::LlmController` → `Api::SkillsController`
